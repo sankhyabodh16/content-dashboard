@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2E2E2E; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+/* Hide scrollbar on right sidebar */
+.sidebar-scroll::-webkit-scrollbar { display: none; }
+.sidebar-scroll { scrollbar-width: none; }
+
+/* Transitions — color/bg/border only, not layout */
+* { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background-color: #04040A;
+  color: #EDEDED;
+  min-width: 1280px;
+}
+
+/* Skeleton loading animation */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton {
+  background-color: #1C1C1C;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  display: block;
+}
