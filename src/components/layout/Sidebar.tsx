@@ -86,7 +86,7 @@ export default function Sidebar() {
               lineHeight: 1.2,
             }}
           >
-            COMMAND CENTER
+            CONTENT BASE
           </span>
         </div>
       </div>

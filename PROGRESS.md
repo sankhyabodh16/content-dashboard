@@ -1,4 +1,4 @@
-# 100 OPS Command Center — Build Progress
+# 100 OPS Content Base — Build Progress
 
 Last updated: 2026-03-25
 
