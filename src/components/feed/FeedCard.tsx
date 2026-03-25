@@ -234,7 +234,6 @@ export default function FeedCard({ item }: FeedCardProps) {
             src={videos[0]}
             controls
             preload="metadata"
-            referrerPolicy="no-referrer"
             style={{ width: '100%', display: 'block', maxHeight: '480px' }}
           />
         </div>

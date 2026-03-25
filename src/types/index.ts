@@ -33,7 +33,7 @@ export interface Creator {
   profile_url: string | null
   avatar_color: string
   followers: string
-  connection_count: number | null
+  connection_count?: number | null
   posts_scraped: number
   last_scraped: string | null
   created_at: string
