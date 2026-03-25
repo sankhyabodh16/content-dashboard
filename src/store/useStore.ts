@@ -30,7 +30,7 @@ interface AppState {
   // Creator mutations
   addCreator: (creator: Omit<Creator, 'id' | 'created_at' | 'updated_at' | 'avatar_color' | 'followers' | 'posts_scraped' | 'last_scraped'>) => Promise<void>
   removeCreator: (id: string) => Promise<void>
-  updateCreator: (id: string, patch: Pick<Creator, 'name' | 'handle' | 'profile_url'>) => void
+  updateCreator: (id: string, patch: Pick<Creator, 'name' | 'handle' | 'profile_url'>) => Promise<void>
 
   // UI actions
   setFilter: (filter: Platform | 'all') => void
@@ -155,8 +155,8 @@ export const useStore = create<AppState>((set, get) => ({
 
     if (!isSupabaseConfigured) return
 
-    // Fire all hide calls in background
-    toHide.forEach((id) => api.hidePost(id))
+    // Fire all hide calls in parallel
+    await Promise.all(toHide.map((id) => api.hidePost(id)))
   },
 
   clearArchive: async () => {
@@ -221,12 +221,31 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  updateCreator: (id, patch) =>
+  updateCreator: async (id, patch) => {
+    const prev = get().creators.find((c) => c.id === id)
+    if (!prev) return
+
+    // Optimistic update
     set((state) => ({
       creators: state.creators.map((c) =>
         c.id === id ? { ...c, ...patch, updated_at: new Date().toISOString() } : c
       ),
-    })),
+    }))
+
+    if (!isSupabaseConfigured) return
+
+    const { error } = await api.updateCreator(id, {
+      name: patch.name,
+      handle: patch.handle,
+      profile_url: patch.profile_url,
+    })
+    if (error) {
+      // Revert
+      set((state) => ({
+        creators: state.creators.map((c) => (c.id === id ? prev : c)),
+      }))
+    }
+  },
 
   setFilter: (filter) => set({ activeFilter: filter }),
 

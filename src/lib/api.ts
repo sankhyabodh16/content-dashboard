@@ -78,6 +78,10 @@ export async function deleteCreator(id: string) {
   return await supabase.from('creators').delete().eq('id', id)
 }
 
+export async function updateCreator(id: string, patch: { name: string; handle: string; profile_url: string | null }) {
+  return await supabase.from('creators').update(patch).eq('id', id).select().single()
+}
+
 export async function fetchCreators() {
   return await supabase
     .from('creators')

@@ -119,7 +119,7 @@ async function processCreator(creator) {
     })
     if (accountInfo?.basic_info) {
       await updateCreator(creator.id, {
-        followers: accountInfo.basic_info.follower_count,
+        followers: String(accountInfo.basic_info.follower_count ?? '0'),
         connection_count: accountInfo.basic_info.connection_count,
         last_scraped: new Date().toISOString(),
       })
@@ -188,14 +188,19 @@ async function processCreator(creator) {
         platform_id: postId,
         platform: 'linkedin',
         author: post.authorName,
-        handle: post.authorProfileId,
-        body: post.text,
+        handle: creator.handle,
+        body: post.text ?? '',
         post_url: post.url,
         likes: post.numLikes ?? 0,
         comments_count: post.numComments ?? 0,
         shares_count: post.numShares ?? 0,
+        views_count: 0,
         image_urls: imageUrls,
         video_urls: videoUrls,
+        is_hidden: false,
+        is_bookmarked: false,
+        tags: [],
+        relevance: 0,
         creator_id: creator.id,
         created_at: post.postedAtISO || null,
         scraped_at: new Date().toISOString(),

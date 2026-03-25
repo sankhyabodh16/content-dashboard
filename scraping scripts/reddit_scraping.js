@@ -195,6 +195,10 @@ async function processCreator(creator) {
         image_urls: imageUrls,
         video_urls: videoUrls,
         thumbnail_url: imageUrls[0] ?? null,
+        is_hidden: false,
+        is_bookmarked: false,
+        tags: [],
+        relevance: 0,
         creator_id: creator.id,
         created_at: post.created_utc
           ? typeof post.created_utc === 'number'
