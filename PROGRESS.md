@@ -211,13 +211,30 @@ O
 - [x] `removeCreator` — now calls `deleteCreator` in Supabase (was local state only); added DELETE RLS policy on `creators` table
 - [x] **"Open original"** — `post_url` opens in new tab from feed card action row
 
-### Production deployment (planned 2026-03-25)
-- [ ] **Step 1** — `git init`, `.gitignore`, create private GitHub repo, push to `main`
-- [ ] **Step 2** — Add GitHub Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `APIFY_TOKEN`, `ANTHROPIC_API_KEY`
-- [ ] **Step 3** — Add cron schedules to workflows: scraping every 6h; trending + ideation daily
-- [ ] **Step 4** — Deploy to Vercel: connect GitHub repo, set `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
-- [ ] **Step 5** — Wire Scrape Now: `creator_id` workflow input + GitHub dispatch API from frontend + `VITE_GITHUB_TOKEN` / `VITE_GITHUB_REPO` env vars
+### Production deployment (2026-03-25)
+- [x] **Step 1** — git init, .gitignore, pushed to GitHub (`sankhyabodh16/content-dashboard`)
+- [x] **Step 2** — GitHub Actions secrets added: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `APIFY_TOKEN`
+- [x] **Step 3** — Cron schedules added: scraping every 6h; trending 30min after; ideation daily 1am UTC; n8n triggers via GitHub dispatch API
+- [x] **Step 4** — Deployed to Vercel ✅ live
+- [ ] **Step 5** — Wire Scrape Now: `creator_id` workflow input + GitHub dispatch API from frontend
 - [ ] **Step 6** — `updateCreator` persists to Supabase
+
+### Known bugs — audit (2026-03-25)
+
+#### 🔴 Critical
+- [ ] `updateCreator` — local state only, no `api.updateCreator()` exists; edits lost on refresh
+- [ ] `relevance` + `tags` — no scraper populates these; FeedCard shows `0% match` and no tags forever
+- [ ] YouTube `transcript` field — saved by scraper but not in `FeedItem` type; data is lost silently
+- [ ] `is_hidden` / `is_bookmarked` not set by scrapers — feed filtering may break if Supabase defaults aren't set to `false`
+- [ ] Scrape Now button — no `onClick` handler, completely non-functional
+
+#### 🟡 Medium
+- [ ] Reddit members metric — saved to `followers` column but UI reads `metrics.members`; always shows `—`
+- [ ] `followers` type mismatch — type says `string`, LinkedIn + Reddit scripts save a `number`
+- [ ] Metric display breaks for "1.2M" format — `Number("1.2M")` returns `NaN`
+- [ ] `clearFeed` race condition — `forEach` fires all `hidePost()` calls without `Promise.all`; failures are silent
+- [ ] No pagination on `fetchFeedItems` — fetches all rows; performance cliff at scale
+- [ ] LinkedIn `handle` on feed items — saves post author's profile ID, not the creator's handle
 
 ### Future Features
 - [ ] Brand Voice configuration page
