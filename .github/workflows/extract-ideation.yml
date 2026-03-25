@@ -2,6 +2,8 @@ name: Extract Ideation Items
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'
 
 jobs:
   extract:
