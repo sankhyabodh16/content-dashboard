@@ -5,6 +5,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 const APIFY_TOKEN = process.env.APIFY_TOKEN
 
 const APIFY_REDDIT_ACTOR = 'TwqHBuZZPHJxiQrTU'
+const CREATOR_ID = process.env.CREATOR_ID || null
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
 
@@ -235,7 +236,14 @@ async function processCreator(creator) {
 async function main() {
   console.log('Reddit scraping started', new Date().toISOString())
 
-  const creators = await getRedditCreators()
+  let creators = await getRedditCreators()
+  if (CREATOR_ID) {
+    creators = creators.filter((c) => c.id === CREATOR_ID)
+    if (!creators.length) {
+      console.log(`No Reddit creator found with id ${CREATOR_ID}`)
+      return
+    }
+  }
   console.log(`Found ${creators.length} Reddit creators`)
 
   for (const creator of creators) {

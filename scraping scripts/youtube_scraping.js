@@ -6,6 +6,7 @@ const APIFY_TOKEN = process.env.APIFY_TOKEN
 
 const APIFY_CHANNEL_ACTOR = 'REpzi5gxGt0DREvoi'
 const APIFY_TRANSCRIPT_ACTOR = '1s7eXiaukVuOr4Ueg'
+const CREATOR_ID = process.env.CREATOR_ID || null
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
 
@@ -324,7 +325,14 @@ async function processCreator(creator) {
 async function main() {
   console.log('YouTube scraping started', new Date().toISOString())
 
-  const creators = await getYouTubeCreators()
+  let creators = await getYouTubeCreators()
+  if (CREATOR_ID) {
+    creators = creators.filter((c) => c.id === CREATOR_ID)
+    if (!creators.length) {
+      console.log(`No YouTube creator found with id ${CREATOR_ID}`)
+      return
+    }
+  }
   console.log(`Found ${creators.length} YouTube creators`)
 
   for (const creator of creators) {

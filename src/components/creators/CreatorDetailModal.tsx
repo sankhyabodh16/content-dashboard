@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, RefreshCw, ExternalLink, Trash2, Pencil, Check } from 'lucide-react'
+import { X, RefreshCw, ExternalLink, Trash2, Pencil, Check, Loader2 } from 'lucide-react'
 import { Creator } from '../../types'
 import { C, F, R, PLATFORM_COLORS } from '../../lib/tokens'
 import { useStore, useShallow } from '../../store/useStore'
@@ -10,6 +10,12 @@ interface Props {
   creator: Creator
   onClose: () => void
   onRemove: (id: string) => void
+}
+
+const WORKFLOW_MAP: Record<string, string> = {
+  linkedin: 'scrape-linkedin.yml',
+  reddit: 'scrape-reddit.yml',
+  youtube: 'scrape-youtube.yml',
 }
 
 const PLATFORM_METRIC_LABELS: Record<string, { key: string; label: string }[]> = {
@@ -42,6 +48,8 @@ export default function CreatorDetailModal({ creator, onClose, onRemove }: Props
   const updateCreator = useStore(useShallow((s) => s.updateCreator))
 
   const [confirming, setConfirming] = useState(false)
+  const [scraping, setScraping] = useState(false)
+  const [scrapeStatus, setScrapeStatus] = useState<'queued' | 'error' | null>(null)
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(creator.name)
   const [editUrl, setEditUrl] = useState(creator.profile_url ?? '')
@@ -99,6 +107,39 @@ export default function CreatorDetailModal({ creator, onClose, onRemove }: Props
       profile_url: trimmedUrl || null,
     })
     setEditing(false)
+  }
+
+  async function handleScrapeNow() {
+    const workflowId = WORKFLOW_MAP[creator.platform]
+    if (!workflowId) return
+    const repo = import.meta.env.VITE_GITHUB_REPO
+    const token = import.meta.env.VITE_GITHUB_TOKEN
+    if (!repo || !token) {
+      setScrapeStatus('error')
+      setTimeout(() => setScrapeStatus(null), 3000)
+      return
+    }
+    setScraping(true)
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${repo}/actions/workflows/${workflowId}/dispatches`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/vnd.github.v3+json',
+          },
+          body: JSON.stringify({ ref: 'main', inputs: { creator_id: creator.id } }),
+        }
+      )
+      setScrapeStatus(res.ok || res.status === 204 ? 'queued' : 'error')
+    } catch {
+      setScrapeStatus('error')
+    } finally {
+      setScraping(false)
+      setTimeout(() => setScrapeStatus(null), 4000)
+    }
   }
 
   function handleRemove() {
@@ -350,21 +391,28 @@ export default function CreatorDetailModal({ creator, onClose, onRemove }: Props
           {/* Actions */}
           <div className="flex items-center gap-3">
             <button
+              onClick={handleScrapeNow}
+              disabled={scraping || !WORKFLOW_MAP[creator.platform]}
               className="flex items-center gap-2 rounded-lg px-3 py-2 flex-1 justify-center"
               style={{
-                backgroundColor: C.bg.elevated,
-                border: `1px solid ${C.border.default}`,
-                color: C.text.secondary,
+                backgroundColor: scrapeStatus === 'queued' ? `${color}18` : scrapeStatus === 'error' ? '#E8323215' : C.bg.elevated,
+                border: `1px solid ${scrapeStatus === 'queued' ? color + '60' : scrapeStatus === 'error' ? '#E83232' : C.border.default}`,
+                color: scrapeStatus === 'queued' ? color : scrapeStatus === 'error' ? '#E83232' : C.text.secondary,
                 fontFamily: F.mono,
                 fontSize: '12px',
-                cursor: 'pointer',
+                cursor: scraping || !WORKFLOW_MAP[creator.platform] ? 'not-allowed' : 'pointer',
                 letterSpacing: '0.03em',
+                opacity: scraping ? 0.7 : 1,
+                transition: 'all 0.15s ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = color + '60'; e.currentTarget.style.color = color }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border.default; e.currentTarget.style.color = C.text.secondary }}
+              onMouseEnter={(e) => { if (!scraping && !scrapeStatus) { e.currentTarget.style.borderColor = color + '60'; e.currentTarget.style.color = color } }}
+              onMouseLeave={(e) => { if (!scraping && !scrapeStatus) { e.currentTarget.style.borderColor = C.border.default; e.currentTarget.style.color = C.text.secondary } }}
             >
-              <RefreshCw size={13} strokeWidth={2} />
-              Scrape Now
+              {scraping
+                ? <Loader2 size={13} strokeWidth={2} className="animate-spin" />
+                : <RefreshCw size={13} strokeWidth={2} />
+              }
+              {scrapeStatus === 'queued' ? 'Queued!' : scrapeStatus === 'error' ? 'Failed' : scraping ? 'Queuing…' : 'Scrape Now'}
             </button>
 
             {creator.profile_url && (

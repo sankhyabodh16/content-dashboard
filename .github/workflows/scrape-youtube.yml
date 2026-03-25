@@ -2,6 +2,11 @@ name: Scrape YouTube
 
 on:
   workflow_dispatch:
+    inputs:
+      creator_id:
+        description: 'Specific creator ID to scrape (leave empty for all)'
+        required: false
+        default: ''
   schedule:
     - cron: '0 */6 * * *'
 
@@ -20,3 +25,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          CREATOR_ID: ${{ inputs.creator_id }}

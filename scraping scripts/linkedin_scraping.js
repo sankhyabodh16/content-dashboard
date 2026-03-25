@@ -6,6 +6,7 @@ const APIFY_TOKEN = process.env.APIFY_TOKEN
 
 const APIFY_ACCOUNT_ACTOR = 'VhxlqQXRwhW8H5hNV'
 const APIFY_POSTS_ACTOR = 'Wpp1BZ6yGWjySadk3'
+const CREATOR_ID = process.env.CREATOR_ID || null
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
 
@@ -224,7 +225,14 @@ async function processCreator(creator) {
 async function main() {
   console.log('LinkedIn scraping started', new Date().toISOString())
 
-  const creators = await getLinkedInCreators()
+  let creators = await getLinkedInCreators()
+  if (CREATOR_ID) {
+    creators = creators.filter((c) => c.id === CREATOR_ID)
+    if (!creators.length) {
+      console.log(`No LinkedIn creator found with id ${CREATOR_ID}`)
+      return
+    }
+  }
   console.log(`Found ${creators.length} LinkedIn creators`)
 
   for (const creator of creators) {
