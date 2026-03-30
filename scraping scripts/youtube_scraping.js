@@ -292,8 +292,6 @@ async function processCreator(creator) {
         image_urls: [],
         video_urls: [],
         thumbnail_url: thumbnailUrl,
-        is_hidden: false,
-        is_bookmarked: false,
         tags: [],
         relevance: 0,
         creator_id: creator.id,

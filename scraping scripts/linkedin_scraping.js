@@ -198,8 +198,6 @@ async function processCreator(creator) {
         views_count: 0,
         image_urls: imageUrls,
         video_urls: videoUrls,
-        is_hidden: false,
-        is_bookmarked: false,
         tags: [],
         relevance: 0,
         creator_id: creator.id,
