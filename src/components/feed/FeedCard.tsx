@@ -252,32 +252,25 @@ export default function FeedCard({ item }: FeedCardProps) {
       )}
 
       {/* Engagement row */}
-      <div className="flex items-center gap-3 mb-3 flex-wrap">
-        <span style={{ fontFamily: F.mono, fontSize: '13px', color: C.accent.orange, fontWeight: 500 }}>
-          🔥 {item.likes.toLocaleString()}
-        </span>
-        <span style={{ fontFamily: F.mono, fontSize: '13px', color: C.accent.green, fontWeight: 500 }}>
-          {item.relevance}% match
-        </span>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {item.tags.map((tag) => (
-            <span
-              key={tag}
-              style={{
-                fontFamily: F.mono,
-                fontSize: '11px',
-                color: C.text.secondary,
-                backgroundColor: C.bg.elevated,
-                padding: '3px 8px',
-                borderRadius: R.sm,
-                letterSpacing: '0.03em',
-              }}
-            >
-              {tag}
+      {(item.likes > 0 || item.comments_count > 0 || item.views_count > 0) && (
+        <div className="flex items-center gap-4 mb-3">
+          {item.likes > 0 && (
+            <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
+              🔥 {item.likes.toLocaleString()}
             </span>
-          ))}
+          )}
+          {item.comments_count > 0 && (
+            <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
+              💬 {item.comments_count.toLocaleString()}
+            </span>
+          )}
+          {item.views_count > 0 && (
+            <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
+              👁 {item.views_count.toLocaleString()}
+            </span>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Action row */}
       <div className="flex items-center gap-3 pt-3" style={{ borderTop: `1px solid ${C.border.subtle}` }}>
