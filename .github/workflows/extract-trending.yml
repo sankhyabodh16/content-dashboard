@@ -2,8 +2,6 @@ name: Extract Trending Topics
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 */6 * * *'
 
 jobs:
   extract:

@@ -38,8 +38,6 @@ export async function toggleBookmark(platformId: string, current: boolean) {
     .from('feed_items')
     .update({ is_bookmarked: !current })
     .eq('platform_id', platformId)
-    .select()
-    .single()
 }
 
 export async function hidePost(platformId: string) {
@@ -47,8 +45,6 @@ export async function hidePost(platformId: string) {
     .from('feed_items')
     .update({ is_hidden: true })
     .eq('platform_id', platformId)
-    .select()
-    .single()
 }
 
 export async function restorePost(platformId: string) {
@@ -56,8 +52,6 @@ export async function restorePost(platformId: string) {
     .from('feed_items')
     .update({ is_hidden: false })
     .eq('platform_id', platformId)
-    .select()
-    .single()
 }
 
 export async function deletePost(platformId: string) {
