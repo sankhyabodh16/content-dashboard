@@ -252,25 +252,31 @@ export default function FeedCard({ item }: FeedCardProps) {
       )}
 
       {/* Engagement row */}
-      {(item.likes > 0 || item.comments_count > 0 || item.views_count > 0) && (
-        <div className="flex items-center gap-4 mb-3">
-          {item.likes > 0 && (
-            <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
-              🔥 {item.likes.toLocaleString()}
-            </span>
-          )}
-          {item.comments_count > 0 && (
-            <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
-              💬 {item.comments_count.toLocaleString()}
-            </span>
-          )}
-          {item.views_count > 0 && (
-            <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
-              👁 {item.views_count.toLocaleString()}
-            </span>
-          )}
-        </div>
-      )}
+      {(() => {
+        const stats: { icon: string; value: number; label: string }[] = []
+        if (item.platform === 'linkedin') {
+          if (item.likes > 0)          stats.push({ icon: '👍', value: item.likes,          label: 'likes' })
+          if (item.comments_count > 0) stats.push({ icon: '💬', value: item.comments_count, label: 'comments' })
+          if (item.shares_count > 0)   stats.push({ icon: '🔁', value: item.shares_count,   label: 'shares' })
+        } else if (item.platform === 'youtube') {
+          if (item.views_count > 0)    stats.push({ icon: '👁', value: item.views_count,    label: 'views' })
+          if (item.likes > 0)          stats.push({ icon: '👍', value: item.likes,          label: 'likes' })
+          if (item.comments_count > 0) stats.push({ icon: '💬', value: item.comments_count, label: 'comments' })
+        } else if (item.platform === 'reddit') {
+          if (item.likes > 0)          stats.push({ icon: '⬆', value: item.likes,          label: 'upvotes' })
+          if (item.comments_count > 0) stats.push({ icon: '💬', value: item.comments_count, label: 'comments' })
+        }
+        if (stats.length === 0) return null
+        return (
+          <div className="flex items-center gap-4 mb-3">
+            {stats.map((s) => (
+              <span key={s.label} style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
+                {s.icon} {s.value.toLocaleString()}
+              </span>
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Action row */}
       <div className="flex items-center gap-3 pt-3" style={{ borderTop: `1px solid ${C.border.subtle}` }}>
