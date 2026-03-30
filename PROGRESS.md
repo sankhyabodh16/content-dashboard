@@ -1,6 +1,6 @@
 # 100 OPS Content Base — Build Progress
 
-Last updated: 2026-03-25
+Last updated: 2026-03-30 (session 2)
 
 ---
 
@@ -13,8 +13,8 @@ Last updated: 2026-03-25
 | LinkedIn scraping script | ✅ Complete |
 | Reddit scraping script | ✅ Complete |
 | YouTube scraping script | ✅ Complete |
-| GitHub Actions cron deployment | 🔶 Workflows exist, cron not scheduled |
-| Deploy to Vercel | ⬜ Not started |
+| GitHub Actions cron deployment | ✅ Cron removed — n8n handles scheduling |
+| Deploy to Vercel | ✅ Live |
 | Content Studio AI (Claude API) | ⬜ Not started |
 | Brand Voice | ⬜ Placeholder only |
 | Saved Drafts | ⬜ Placeholder only |
@@ -182,8 +182,8 @@ O
 - [ ] Ideation item status update (`idea` → `writing` → `drafted`) on Save Draft
 
 ### Creator mutations — backend
-- [ ] **Scrape Now** — trigger GitHub Actions `workflow_dispatch` for the creator's platform, passing `creator_id` as input; scraping script filters to that one creator; requires `VITE_GITHUB_TOKEN` + `VITE_GITHUB_REPO` env vars
-- [ ] `updateCreator` — persist name/URL edits to Supabase (`useStore` updates local state only today)
+- [x] **Scrape Now** — triggers GitHub Actions `workflow_dispatch` for the creator's platform (2026-03-30)
+- [x] `updateCreator` — persists name/URL edits to Supabase with optimistic revert
 
 ### UX gaps
 - [x] **Clear Archive button** — two-click confirm (turns red → "Confirm delete?"), permanently deletes all archived posts from Supabase + clears local state; hidden when archive is empty
@@ -216,17 +216,17 @@ O
 - [x] **Step 2** — GitHub Actions secrets added: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `APIFY_TOKEN`
 - [x] **Step 3** — Cron schedules added: scraping every 6h; trending 30min after; ideation daily 1am UTC; n8n triggers via GitHub dispatch API
 - [x] **Step 4** — Deployed to Vercel ✅ live
-- [ ] **Step 5** — Wire Scrape Now: `creator_id` workflow input + GitHub dispatch API from frontend
-- [ ] **Step 6** — `updateCreator` persists to Supabase
+- [x] **Step 5** — Scrape Now wired: GitHub dispatch API from frontend, `VITE_GITHUB_TOKEN` + `VITE_GITHUB_REPO` added to `.env` and Vercel env vars ✅ live (2026-03-30)
+- [x] **Step 6** — `updateCreator` persists to Supabase (async with optimistic revert)
 
 ### Known bugs — audit (2026-03-25)
 
 #### 🔴 Critical
-- [ ] `updateCreator` — local state only, no `api.updateCreator()` exists; edits lost on refresh
-- [ ] `relevance` + `tags` — no scraper populates these; FeedCard shows `0% match` and no tags forever
+- [x] `updateCreator` — now persists to Supabase (2026-03-30)
+- [x] `relevance` + `tags` — removed from FeedCard entirely; engagement row now platform-specific (2026-03-30)
 - [ ] YouTube `transcript` field — saved by scraper but not in `FeedItem` type; data is lost silently
-- [ ] `is_hidden` / `is_bookmarked` not set by scrapers — feed filtering may break if Supabase defaults aren't set to `false`
-- [ ] Scrape Now button — no `onClick` handler, completely non-functional
+- [x] `is_hidden` / `is_bookmarked` — scrapers no longer overwrite these on re-scrape; archived posts stay archived forever (2026-03-30)
+- [x] Scrape Now button — wired to GitHub Actions `workflow_dispatch` API (2026-03-30)
 
 #### 🟡 Medium
 - [ ] Reddit members metric — saved to `followers` column but UI reads `metrics.members`; always shows `—`
@@ -235,6 +235,14 @@ O
 - [ ] `clearFeed` race condition — `forEach` fires all `hidePost()` calls without `Promise.all`; failures are silent
 - [ ] No pagination on `fetchFeedItems` — fetches all rows; performance cliff at scale
 - [ ] LinkedIn `handle` on feed items — saves post author's profile ID, not the creator's handle
+
+### Fixes & improvements (2026-03-30)
+- [x] **GitHub Actions cron removed** — all 5 workflows now `workflow_dispatch` only; n8n handles scheduling
+- [x] **Scrape Now progress bar** — polls GitHub Actions API every 10s after dispatch; shows Dispatching → Queued → Running → Done/Failed with elapsed timer
+- [x] **Supabase 404 errors fixed** — removed `.single()` from `toggleBookmark`, `hidePost`, `restorePost` in api.ts
+- [x] **Archive DELETE RLS** — added DELETE policy on `feed_items` for anon role; Clear Archive now truly deletes from Supabase
+- [x] **Scrapers no longer overwrite `is_hidden` / `is_bookmarked`** — archived posts stay archived permanently on re-scrape
+- [x] **Feed card engagement row** — platform-specific stats only (LinkedIn: 👍💬🔁 · YouTube: 👁👍💬 · Reddit: ⬆💬); removed broken `relevance` % and `tags`
 
 ### Future Features
 - [ ] Brand Voice configuration page
