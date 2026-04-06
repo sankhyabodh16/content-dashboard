@@ -130,20 +130,23 @@ async function fetchTranscript(videoUrl) {
       viewCountBoolean: true,
     })
     const item = results?.[0]
-    if (!item) return null
+    if (!item) return { transcript: null, datePublished: null }
 
+    let transcript = null
     // Transcript is typically an array of { text, start, duration } segments
     // Join into a single string
     if (Array.isArray(item.transcript)) {
-      return item.transcript.map((s) => s.text).join(' ').trim() || null
+      transcript = item.transcript.map((s) => s.text).join(' ').trim() || null
+    } else if (typeof item.transcript === 'string') {
+      transcript = item.transcript.trim() || null
     }
-    if (typeof item.transcript === 'string') {
-      return item.transcript.trim() || null
-    }
-    return null
+
+    const datePublished = item.datePublished ?? item.publishedAt ?? null
+
+    return { transcript, datePublished }
   } catch (e) {
     console.warn(`  ✗ Transcript fetch failed: ${e.message}`)
-    return null
+    return { transcript: null, datePublished: null }
   }
 }
 
@@ -268,9 +271,9 @@ async function processCreator(creator) {
       )
     }
 
-    // Fetch transcript
+    // Fetch transcript + publish date from transcript actor
     console.log(`  ↓ Fetching transcript for ${videoId}`)
-    const transcript = await fetchTranscript(videoUrl)
+    const { transcript, datePublished } = await fetchTranscript(videoUrl)
 
     // Upsert to feed_items
     try {
@@ -295,7 +298,7 @@ async function processCreator(creator) {
         tags: [],
         relevance: 0,
         creator_id: creator.id,
-        created_at: video.datePublished ?? video.publishedAt ?? null,
+        created_at: datePublished ?? video.datePublished ?? video.publishedAt ?? null,
         scraped_at: new Date().toISOString(),
       })
       upsertedCount++

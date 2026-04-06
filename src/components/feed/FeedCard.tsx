@@ -169,7 +169,7 @@ export default function FeedCard({ item }: FeedCardProps) {
         )}
         <span style={{ color: C.border.default, fontSize: '14px' }}>·</span>
         <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
-          {timeAgo(item.created_at)}
+          {timeAgo(item.created_at || item.scraped_at)}
         </span>
         <button
           onClick={() => hidePost(item.platform_id)}

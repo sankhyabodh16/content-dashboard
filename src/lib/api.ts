@@ -5,7 +5,7 @@ export async function fetchFeedItems(platform?: string) {
     .from('feed_items')
     .select('*')
     .eq('is_hidden', false)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false, nullsFirst: false })
   if (platform && platform !== 'all') {
     query = query.eq('platform', platform)
   }
