@@ -6,7 +6,7 @@ import EmptyState from '../ui/EmptyState'
 
 export default function BookmarksPage() {
   const feedItems = useStore(useShallow((s) => s.feedItems))
-  const bookmarked = feedItems.filter((item) => item.is_bookmarked && !item.is_hidden)
+  const bookmarked = feedItems.filter((item) => item.is_bookmarked)
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: C.bg.base }}>

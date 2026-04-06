@@ -8,7 +8,7 @@ export default function ListPage() {
   const { feedItems, ideationItems } = useStore(
     useShallow((s) => ({ feedItems: s.feedItems, ideationItems: s.ideationItems }))
   )
-  const listed = feedItems.filter((item) => item.is_bookmarked && !item.is_hidden)
+  const listed = feedItems.filter((item) => item.is_bookmarked)
 
   const analyzedIds = new Set(ideationItems.flatMap((i) => i.source_item_ids))
 
