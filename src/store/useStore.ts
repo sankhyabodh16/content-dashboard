@@ -143,14 +143,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   clearFeed: async () => {
     const toHide = get().feedItems
-      .filter((i) => !i.is_bookmarked && !i.is_hidden)
+      .filter((i) => !i.is_hidden)
       .map((i) => i.platform_id)
 
-    // Optimistic update
+    // Optimistic update — hide everything (including bookmarked/list items)
     set((state) => ({
-      feedItems: state.feedItems.map((item) =>
-        item.is_bookmarked ? item : { ...item, is_hidden: true }
-      ),
+      feedItems: state.feedItems.map((item) => ({ ...item, is_hidden: true })),
     }))
 
     if (!isSupabaseConfigured) return

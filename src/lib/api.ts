@@ -5,7 +5,7 @@ export async function fetchFeedItems(platform?: string) {
     .from('feed_items')
     .select('*')
     .eq('is_hidden', false)
-    .order('scraped_at', { ascending: false })
+    .order('created_at', { ascending: false })
   if (platform && platform !== 'all') {
     query = query.eq('platform', platform)
   }
@@ -18,7 +18,7 @@ export async function fetchBookmarks(platform?: string) {
     .select('*')
     .eq('is_bookmarked', true)
     .eq('is_hidden', false)
-    .order('scraped_at', { ascending: false })
+    .order('created_at', { ascending: false })
   if (platform && platform !== 'all') {
     query = query.eq('platform', platform)
   }
