@@ -12,18 +12,21 @@ const FILTERS: { label: string; value: Platform | 'all' }[] = [
 ]
 
 export default function PlatformFilter() {
-  const { activeFilter, setFilter } = useStore(
-    useShallow((s) => ({ activeFilter: s.activeFilter, setFilter: s.setFilter }))
+  const { activeFilter, toggleFilter } = useStore(
+    useShallow((s) => ({ activeFilter: s.activeFilter, toggleFilter: s.toggleFilter }))
   )
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {FILTERS.map((filter) => {
-        const isActive = activeFilter === filter.value
+        const isActive =
+          filter.value === 'all'
+            ? activeFilter.length === 0
+            : activeFilter.includes(filter.value as Platform)
         return (
           <button
             key={filter.value}
-            onClick={() => setFilter(filter.value)}
+            onClick={() => toggleFilter(filter.value)}
             style={{
               fontFamily: F.mono,
               fontSize: '12px',

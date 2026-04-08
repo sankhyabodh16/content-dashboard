@@ -24,7 +24,7 @@ export default function FeedPage() {
 
   const visibleItems = feedItems.filter((item) => {
     if (item.is_hidden) return false
-    if (activeFilter !== 'all' && item.platform !== activeFilter) return false
+    if (activeFilter.length > 0 && !activeFilter.includes(item.platform)) return false
     return true
   })
 

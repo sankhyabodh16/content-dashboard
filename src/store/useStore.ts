@@ -14,7 +14,7 @@ interface AppState {
   activeIdeation: IdeationItem | null
 
   // UI state
-  activeFilter: Platform | 'all'
+  activeFilter: Platform[]
   isLoading: boolean
 
   // Init
@@ -34,6 +34,7 @@ interface AppState {
 
   // UI actions
   setFilter: (filter: Platform | 'all') => void
+  toggleFilter: (filter: Platform | 'all') => void
   setActiveIdeation: (item: IdeationItem | null) => void
 }
 
@@ -43,7 +44,7 @@ export const useStore = create<AppState>((set, get) => ({
   trending: [],
   ideationItems: [],
   activeIdeation: null,
-  activeFilter: 'all',
+  activeFilter: [],
   isLoading: false,
 
   initialize: async () => {
@@ -245,7 +246,19 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  setFilter: (filter) => set({ activeFilter: filter }),
+  setFilter: (filter) => set({ activeFilter: filter === 'all' ? [] : [filter] }),
+
+  toggleFilter: (filter) => {
+    if (filter === 'all') {
+      set({ activeFilter: [] })
+      return
+    }
+    const current = get().activeFilter
+    const next = current.includes(filter)
+      ? current.filter((f) => f !== filter)
+      : [...current, filter]
+    set({ activeFilter: next })
+  },
 
   setActiveIdeation: (item) => set({ activeIdeation: item }),
 }))
