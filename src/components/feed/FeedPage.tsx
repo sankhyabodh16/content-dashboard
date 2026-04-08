@@ -88,7 +88,7 @@ export default function FeedPage() {
         <div
           className="flex-shrink-0 py-6"
           style={{
-            width: '200px',
+            width: '240px',
             paddingLeft: '20px',
             paddingRight: '16px',
             alignSelf: 'flex-start',
@@ -128,7 +128,7 @@ export default function FeedPage() {
         <div
           className="flex-shrink-0 py-6"
           style={{
-            width: '280px',
+            width: '276px',
             paddingLeft: '16px',
             paddingRight: '20px',
             alignSelf: 'flex-start',
