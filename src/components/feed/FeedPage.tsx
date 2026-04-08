@@ -1,17 +1,24 @@
 import { useState } from 'react'
 import { useStore, useShallow } from '../../store/useStore'
 import { C, F, R } from '../../lib/tokens'
+import { Platform } from '../../types'
 import FeedCard from './FeedCard'
 import FeedCardSkeleton from './FeedCardSkeleton'
-import PlatformFilter from './PlatformFilter'
+import PlatformSidebar from './PlatformSidebar'
 import TrendingSidebar from './TrendingSidebar'
 
 export default function FeedPage() {
   const { feedItems, clearFeed, isLoading } = useStore(
     useShallow((s) => ({ feedItems: s.feedItems, clearFeed: s.clearFeed, isLoading: s.isLoading }))
   )
-  const activeFilter = useStore((s) => s.activeFilter)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([])
+
+  function handleToggle(p: Platform) {
+    setSelectedPlatforms((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
+    )
+  }
 
   function handleClearFeed() {
     if (confirmClear) {
@@ -25,7 +32,7 @@ export default function FeedPage() {
 
   const visibleItems = feedItems.filter((item) => {
     if (item.is_hidden) return false
-    if (activeFilter.length > 0 && !activeFilter.includes(item.platform)) return false
+    if (selectedPlatforms.length > 0 && !selectedPlatforms.includes(item.platform)) return false
     return true
   })
 
@@ -45,7 +52,6 @@ export default function FeedPage() {
           </p>
         </div>
 
-        {/* Clear Feed */}
         <button
           onClick={handleClearFeed}
           style={{
@@ -76,16 +82,29 @@ export default function FeedPage() {
         </button>
       </div>
 
-      {/* Content area */}
+      {/* Content area — 3 columns */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Main feed column — centered */}
-        <div className="flex-1 overflow-y-auto px-10 py-6 flex flex-col items-center">
-          {/* Platform Filter */}
-          <div className="mb-6 w-full" style={{ maxWidth: '680px' }}>
-            <PlatformFilter />
-          </div>
+        {/* Left sidebar — Platform filter */}
+        <div
+          className="flex-shrink-0 py-6"
+          style={{
+            width: '200px',
+            paddingLeft: '24px',
+            paddingRight: '16px',
+            alignSelf: 'flex-start',
+            position: 'sticky',
+            top: 0,
+          }}
+        >
+          <PlatformSidebar
+            selected={selectedPlatforms}
+            onToggle={handleToggle}
+            onClear={() => setSelectedPlatforms([])}
+          />
+        </div>
 
-          {/* Feed items */}
+        {/* Center — feed items */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col items-center">
           <div className="w-full" style={{ maxWidth: '680px' }}>
             {isLoading ? (
               <>
@@ -105,12 +124,12 @@ export default function FeedPage() {
           </div>
         </div>
 
-        {/* Right sidebar — sticky */}
+        {/* Right sidebar — Trending */}
         <div
           className="sidebar-scroll flex-shrink-0 py-6"
           style={{
-            width: '340px',
-            paddingLeft: '20px',
+            width: '300px',
+            paddingLeft: '16px',
             paddingRight: '24px',
             alignSelf: 'flex-start',
             position: 'sticky',
