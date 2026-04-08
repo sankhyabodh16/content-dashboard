@@ -2,8 +2,7 @@ import { Platform } from '../../types'
 import { useStore } from '../../store/useStore'
 import { C, F } from '../../lib/tokens'
 
-const FILTERS: { label: string; value: Platform | 'all' }[] = [
-  { label: 'All', value: 'all' },
+const PLATFORMS: { label: string; value: Platform }[] = [
   { label: 'LinkedIn', value: 'linkedin' },
   { label: 'Twitter/X', value: 'twitter' },
   { label: 'Reddit', value: 'reddit' },
@@ -16,45 +15,38 @@ export default function PlatformFilter() {
   const toggleFilter = useStore((s) => s.toggleFilter)
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {FILTERS.map((filter) => {
-        const isActive =
-          filter.value === 'all'
-            ? activeFilter.length === 0
-            : activeFilter.includes(filter.value as Platform)
+    <div className="flex items-center gap-5 flex-wrap">
+      {PLATFORMS.map((p) => {
+        const checked = activeFilter.includes(p.value)
         return (
-          <button
-            key={filter.value}
-            onClick={() => toggleFilter(filter.value)}
-            style={{
-              fontFamily: F.mono,
-              fontSize: '12px',
-              fontWeight: isActive ? 500 : 400,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              padding: '6px 14px',
-              borderRadius: '9999px',
-              backgroundColor: isActive ? C.accent.red : 'transparent',
-              color: isActive ? '#FFFFFF' : C.text.secondary,
-              border: `1px solid ${isActive ? C.accent.red : C.border.default}`,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.borderColor = C.border.hover
-                e.currentTarget.style.color = C.text.primary
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.borderColor = C.border.default
-                e.currentTarget.style.color = C.text.secondary
-              }
-            }}
+          <label
+            key={p.value}
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer' }}
           >
-            {filter.label}
-          </button>
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => toggleFilter(p.value)}
+              style={{
+                width: '14px',
+                height: '14px',
+                accentColor: C.accent.red,
+                cursor: 'pointer',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: F.mono,
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: checked ? C.text.primary : C.text.muted,
+                fontWeight: checked ? 500 : 400,
+              }}
+            >
+              {p.label}
+            </span>
+          </label>
         )
       })}
     </div>
