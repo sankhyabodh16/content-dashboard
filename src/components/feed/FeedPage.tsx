@@ -7,9 +7,10 @@ import PlatformFilter from './PlatformFilter'
 import TrendingSidebar from './TrendingSidebar'
 
 export default function FeedPage() {
-  const { feedItems, activeFilter, clearFeed, isLoading } = useStore(
-    useShallow((s) => ({ feedItems: s.feedItems, activeFilter: s.activeFilter, clearFeed: s.clearFeed, isLoading: s.isLoading }))
+  const { feedItems, clearFeed, isLoading } = useStore(
+    useShallow((s) => ({ feedItems: s.feedItems, clearFeed: s.clearFeed, isLoading: s.isLoading }))
   )
+  const activeFilter = useStore((s) => s.activeFilter)
   const [confirmClear, setConfirmClear] = useState(false)
 
   function handleClearFeed() {

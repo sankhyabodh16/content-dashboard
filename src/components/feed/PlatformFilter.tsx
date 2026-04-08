@@ -1,5 +1,5 @@
 import { Platform } from '../../types'
-import { useStore, useShallow } from '../../store/useStore'
+import { useStore } from '../../store/useStore'
 import { C, F } from '../../lib/tokens'
 
 const FILTERS: { label: string; value: Platform | 'all' }[] = [
@@ -12,9 +12,8 @@ const FILTERS: { label: string; value: Platform | 'all' }[] = [
 ]
 
 export default function PlatformFilter() {
-  const { activeFilter, toggleFilter } = useStore(
-    useShallow((s) => ({ activeFilter: s.activeFilter, toggleFilter: s.toggleFilter }))
-  )
+  const activeFilter = useStore((s) => s.activeFilter)
+  const toggleFilter = useStore((s) => s.toggleFilter)
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
