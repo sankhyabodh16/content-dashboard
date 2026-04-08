@@ -22,7 +22,7 @@ export default function TrendingSidebar() {
   const displayed = tab === 'today' ? todayItems : weekItems
 
   return (
-    <div style={{ width: '300px' }}>
+    <div>
       <div
         style={{
           backgroundColor: C.bg.surface,

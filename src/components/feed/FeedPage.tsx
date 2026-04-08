@@ -126,7 +126,7 @@ export default function FeedPage() {
 
         {/* Right sidebar — Trending */}
         <div
-          className="sidebar-scroll flex-shrink-0 py-6"
+          className="flex-shrink-0 py-6"
           style={{
             width: '280px',
             paddingLeft: '16px',
@@ -134,8 +134,6 @@ export default function FeedPage() {
             alignSelf: 'flex-start',
             position: 'sticky',
             top: 0,
-            maxHeight: '100vh',
-            overflowY: 'auto',
           }}
         >
           <TrendingSidebar />
