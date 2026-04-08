@@ -22,7 +22,7 @@ export default function PlatformSidebar({ selected, onToggle, onClear }: Props) 
         backgroundColor: C.bg.surface,
         border: `1px solid ${C.border.default}`,
         borderRadius: R.card,
-        padding: '16px',
+        padding: '12px',
       }}
     >
       {/* Header */}

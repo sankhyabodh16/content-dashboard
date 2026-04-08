@@ -88,9 +88,9 @@ export default function FeedPage() {
         <div
           className="flex-shrink-0 py-6"
           style={{
-            width: '200px',
-            paddingLeft: '24px',
-            paddingRight: '16px',
+            width: '160px',
+            paddingLeft: '16px',
+            paddingRight: '12px',
             alignSelf: 'flex-start',
             position: 'sticky',
             top: 0,
@@ -104,8 +104,8 @@ export default function FeedPage() {
         </div>
 
         {/* Center — feed items */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col items-center">
-          <div className="w-full" style={{ maxWidth: '680px' }}>
+        <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col items-center">
+          <div className="w-full" style={{ maxWidth: '780px' }}>
             {isLoading ? (
               <>
                 <FeedCardSkeleton />
@@ -128,9 +128,9 @@ export default function FeedPage() {
         <div
           className="sidebar-scroll flex-shrink-0 py-6"
           style={{
-            width: '300px',
-            paddingLeft: '16px',
-            paddingRight: '24px',
+            width: '260px',
+            paddingLeft: '12px',
+            paddingRight: '16px',
             alignSelf: 'flex-start',
             position: 'sticky',
             top: 0,
