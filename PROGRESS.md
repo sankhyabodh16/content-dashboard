@@ -1,6 +1,6 @@
 # 100 OPS Content Base — Build Progress
 
-Last updated: 2026-03-30 (session 2)
+Last updated: 2026-04-08 (session 3)
 
 ---
 
@@ -96,14 +96,15 @@ O
 - [x] Sidebar nav order: Creator List → Feed → List → Archive (RESEARCH), Ideation → Content Studio → Brand Voice → Saved Drafts (AI CREATION)
 
 ### Feed Page (`/`)
-- [x] Platform filter tabs (All, LinkedIn, Twitter/X, Reddit, YouTube, Instagram)
+- [x] **3-column layout** — Platform sidebar (left, 240px) | Feed center (flex) | Trending sidebar (right, 276px)
+- [x] **Platform filter** — left sidebar box with multiselect pill buttons; unchecking all shows everything
+- [x] **Trending sidebar** — static box, no Today/This Week tabs; matches Platform sidebar style
 - [x] Feed cards with full design spec
 - [x] Smooth expand/collapse on card body (max-height CSS transition)
 - [x] **"Add to List" button** — right side of action row, red when active
 - [x] Dismiss card (X) → sends to Archive (sets `is_hidden = true` in Supabase)
 - [x] Clear Feed button with confirm state (listed items preserved)
-- [x] **Trending sidebar** — Today / This Week tab toggle inside "What's Trending"
-- [x] Feed centered at max-width 680px
+- [x] Feed centered at max-width 640px
 - [x] Skeleton loading cards wired to `isLoading` state
 
 ### Archive Page (`/archive`)
@@ -278,11 +279,12 @@ src/
     │   ├── Sidebar.tsx             ✅
     │   └── MainLayout.tsx          ✅ Calls initialize() on mount
     ├── feed/
-    │   ├── FeedPage.tsx            ✅
+    │   ├── FeedPage.tsx            ✅ 3-column layout
     │   ├── FeedCard.tsx            ✅
     │   ├── FeedCardSkeleton.tsx    ✅
-    │   ├── PlatformFilter.tsx      ✅
-    │   └── TrendingSidebar.tsx     ✅ Today / This Week tabs
+    │   ├── PlatformFilter.tsx      ✅ (legacy, unused)
+    │   ├── PlatformSidebar.tsx     ✅ Left sidebar multiselect
+    │   └── TrendingSidebar.tsx     ✅ Static box, no tab toggle
     ├── archive/
     │   └── ArchivePage.tsx         ✅
     ├── list/
