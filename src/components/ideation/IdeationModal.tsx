@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { X, ArrowRight } from 'lucide-react'
 import { IdeationItem } from '../../types'
@@ -34,7 +35,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
   // Split outline into paragraphs on blank lines
   const paragraphs = item.outline.split(/\n{2,}/)
 
-  return (
+  return createPortal(
     // Backdrop
     <div
       onClick={onClose}
@@ -224,6 +225,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
