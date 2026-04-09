@@ -3,10 +3,10 @@ import { C, F, R } from '../../lib/tokens'
 
 const PLATFORMS: { label: string; value: Platform }[] = [
   { label: 'LinkedIn', value: 'linkedin' },
-  { label: 'Twitter/X', value: 'twitter' },
-  { label: 'Reddit', value: 'reddit' },
   { label: 'YouTube', value: 'youtube' },
   { label: 'Instagram', value: 'instagram' },
+  { label: 'Twitter/X', value: 'twitter' },
+  { label: 'Reddit', value: 'reddit' },
 ]
 
 interface Props {
