@@ -141,7 +141,7 @@ async function processCreator(creator) {
       maxPosts: 10,
       scrapeComments: false,
       subredditName,
-      subredditSort: 'hot',
+      subredditSort: 'top',
       subredditTimeframe: 'day',
     })
   } catch (e) {
