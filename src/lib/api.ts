@@ -112,6 +112,14 @@ export async function updateIdeationItem(id: string, patch: { topic: string; out
   return await supabase.from('ideation_items').update(patch).eq('id', id)
 }
 
+export async function deleteIdeationItem(id: string) {
+  return await supabase.from('ideation_items').delete().eq('id', id)
+}
+
+export async function deleteIdeationItems(ids: string[]) {
+  return await supabase.from('ideation_items').delete().in('id', ids)
+}
+
 export async function saveDraft(draft: {
   ideation_item_id?: string
   platform: string

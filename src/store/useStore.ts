@@ -37,6 +37,8 @@ interface AppState {
   toggleFilter: (filter: Platform | 'all') => void
   setActiveIdeation: (item: IdeationItem | null) => void
   updateIdeationItem: (id: string, patch: { topic: string; outline: string }) => Promise<void>
+  deleteIdeationItem: (id: string) => Promise<void>
+  deleteIdeationItems: (ids: string[]) => Promise<void>
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -262,6 +264,22 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setActiveIdeation: (item) => set({ activeIdeation: item }),
+
+  deleteIdeationItem: async (id) => {
+    const prev = get().ideationItems
+    set((state) => ({ ideationItems: state.ideationItems.filter((i) => i.id !== id) }))
+    if (!isSupabaseConfigured) return
+    const { error } = await api.deleteIdeationItem(id)
+    if (error) set({ ideationItems: prev })
+  },
+
+  deleteIdeationItems: async (ids) => {
+    const prev = get().ideationItems
+    set((state) => ({ ideationItems: state.ideationItems.filter((i) => !ids.includes(i.id)) }))
+    if (!isSupabaseConfigured) return
+    const { error } = await api.deleteIdeationItems(ids)
+    if (error) set({ ideationItems: prev })
+  },
 
   updateIdeationItem: async (id, patch) => {
     const prev = get().ideationItems.find((i) => i.id === id)

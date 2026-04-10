@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { X, ArrowRight, Copy, Check } from 'lucide-react'
+import { X, ArrowRight, Copy, Check, Trash2 } from 'lucide-react'
 import { IdeationItem } from '../../types'
 import { useStore } from '../../store/useStore'
 import { C, F, R } from '../../lib/tokens'
@@ -20,6 +20,7 @@ function toMarkdown(topic: string, outline: string): string {
 export default function IdeationModal({ item, onClose }: IdeationModalProps) {
   const setActiveIdeation = useStore((s) => s.setActiveIdeation)
   const updateIdeationItem = useStore((s) => s.updateIdeationItem)
+  const deleteIdeationItem = useStore((s) => s.deleteIdeationItem)
   const navigate = useNavigate()
 
   const [topic, setTopic] = useState(item.topic)
@@ -113,6 +114,26 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
           {item.platform && <PlatformBadge platform={item.platform as Platform} size="sm" />}
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {/* Delete */}
+            <button
+              onClick={async () => { await deleteIdeationItem(item.id); onClose() }}
+              title="Delete idea"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: C.text.muted,
+                padding: '4px 8px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = C.accent.red)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = C.text.muted)}
+            >
+              <Trash2 size={15} strokeWidth={2} />
+            </button>
             {saving && (
               <span style={{ fontFamily: F.mono, fontSize: '11px', color: C.text.muted, marginRight: '6px' }}>
                 Saving…

@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { IdeationItem } from '../../types'
+import { useStore } from '../../store/useStore'
 import { C, F, R } from '../../lib/tokens'
 import PlatformBadge from '../ui/PlatformBadge'
 import { Platform } from '../../types'
@@ -7,11 +9,14 @@ import IdeationModal from './IdeationModal'
 
 interface IdeationCardProps {
   item: IdeationItem
+  selected: boolean
+  onSelect: (id: string, checked: boolean) => void
 }
 
-export default function IdeationCard({ item }: IdeationCardProps) {
+export default function IdeationCard({ item, selected, onSelect }: IdeationCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const deleteIdeationItem = useStore((s) => s.deleteIdeationItem)
 
   const previewText = item.outline.split('\n').filter(Boolean).slice(0, 2).join(' ')
 
@@ -21,23 +26,44 @@ export default function IdeationCard({ item }: IdeationCardProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         style={{
-          backgroundColor: C.bg.surface,
-          border: `1px solid ${isHovered ? C.border.hover : C.border.default}`,
+          backgroundColor: selected ? C.bg.elevated : C.bg.surface,
+          border: `1px solid ${selected ? C.border.hover : isHovered ? C.border.hover : C.border.default}`,
           borderRadius: R.card,
           padding: '24px',
-          transition: 'border-color 0.15s ease',
+          transition: 'border-color 0.15s ease, background-color 0.15s ease',
           height: '220px',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          position: 'relative',
         }}
       >
-        {/* Platform badge */}
-        {item.platform && (
-          <div className="flex items-center gap-2 mb-3">
-            <PlatformBadge platform={item.platform as Platform} size="sm" />
-          </div>
-        )}
+        {/* Checkbox — top-left, visible on hover or when selected */}
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => onSelect(item.id, e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: '14px',
+            left: '14px',
+            width: '15px',
+            height: '15px',
+            cursor: 'pointer',
+            accentColor: C.accent.red,
+            opacity: selected || isHovered ? 1 : 0,
+            transition: 'opacity 0.15s',
+          }}
+        />
+
+        {/* Platform badge — shifted right when checkbox visible */}
+        <div
+          className="flex items-center gap-2 mb-3"
+          style={{ paddingLeft: selected || isHovered ? '24px' : '0', transition: 'padding-left 0.15s' }}
+        >
+          {item.platform && <PlatformBadge platform={item.platform as Platform} size="sm" />}
+        </div>
 
         {/* Topic title */}
         <h3
@@ -85,31 +111,57 @@ export default function IdeationCard({ item }: IdeationCardProps) {
               ? `From ${item.source_item_ids.length} list ${item.source_item_ids.length === 1 ? 'item' : 'items'}`
               : 'Generated'}
           </span>
-          <button
-            onClick={() => setModalOpen(true)}
-            style={{
-              fontFamily: F.mono,
-              fontSize: '11px',
-              color: C.text.secondary,
-              background: 'none',
-              border: `1px solid ${C.border.default}`,
-              borderRadius: '6px',
-              cursor: 'pointer',
-              padding: '4px 10px',
-              letterSpacing: '0.03em',
-              transition: 'border-color 0.15s, color 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = C.border.hover
-              e.currentTarget.style.color = C.text.primary
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = C.border.default
-              e.currentTarget.style.color = C.text.secondary
-            }}
-          >
-            Open
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Delete */}
+            <button
+              onClick={(e) => { e.stopPropagation(); deleteIdeationItem(item.id) }}
+              title="Delete"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: C.text.muted,
+                padding: '4px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                opacity: isHovered ? 1 : 0,
+                transition: 'opacity 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = C.accent.red)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = C.text.muted)}
+            >
+              <Trash2 size={14} strokeWidth={2} />
+            </button>
+
+            {/* Open */}
+            <button
+              onClick={() => setModalOpen(true)}
+              style={{
+                fontFamily: F.mono,
+                fontSize: '11px',
+                color: C.text.secondary,
+                background: 'none',
+                border: `1px solid ${C.border.default}`,
+                borderRadius: '6px',
+                cursor: 'pointer',
+                padding: '4px 10px',
+                letterSpacing: '0.03em',
+                transition: 'border-color 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = C.border.hover
+                e.currentTarget.style.color = C.text.primary
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = C.border.default
+                e.currentTarget.style.color = C.text.secondary
+              }}
+            >
+              Open
+            </button>
+          </div>
         </div>
       </article>
 
