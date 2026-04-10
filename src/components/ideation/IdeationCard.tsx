@@ -41,23 +41,32 @@ export default function IdeationCard({ item, selected, onSelect }: IdeationCardP
         }}
       >
         {/* Checkbox — top-left, visible on hover or when selected */}
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={(e) => onSelect(item.id, e.target.checked)}
-          onClick={(e) => e.stopPropagation()}
+        <div
+          onClick={(e) => { e.stopPropagation(); onSelect(item.id, !selected) }}
           style={{
             position: 'absolute',
             top: '14px',
             left: '14px',
             width: '15px',
             height: '15px',
+            borderRadius: '3px',
+            border: `1.5px solid ${selected ? C.text.muted : C.text.muted}`,
+            backgroundColor: selected ? C.text.muted : 'transparent',
             cursor: 'pointer',
-            accentColor: C.accent.red,
             opacity: selected || isHovered ? 1 : 0,
             transition: 'opacity 0.15s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
           }}
-        />
+        >
+          {selected && (
+            <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+              <path d="M1 3.5L3.5 6L8 1" stroke={C.bg.surface} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
 
         {/* Platform badge — shifted right when checkbox visible */}
         <div
