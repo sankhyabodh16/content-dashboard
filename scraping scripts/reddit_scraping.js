@@ -138,7 +138,7 @@ async function processCreator(creator) {
   try {
     posts = await apifyRun(APIFY_REDDIT_ACTOR, {
       includeNsfw: false,
-      maxPosts: 20,
+      maxPosts: 10,
       scrapeComments: false,
       subredditName,
       subredditSort: 'hot',
