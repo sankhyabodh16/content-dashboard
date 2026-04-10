@@ -47,6 +47,33 @@ export default function IdeationPage() {
               <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
                 {selected.size} selected
               </span>
+              {/* Deselect all */}
+              <button
+                onClick={() => setSelected(new Set())}
+                style={{
+                  fontFamily: F.mono,
+                  fontSize: '12px',
+                  color: C.text.muted,
+                  background: 'none',
+                  border: `1px solid ${C.border.default}`,
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  padding: '5px 12px',
+                  letterSpacing: '0.03em',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = C.border.hover
+                  e.currentTarget.style.color = C.text.primary
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = C.border.default
+                  e.currentTarget.style.color = C.text.muted
+                }}
+              >
+                Deselect All
+              </button>
+              {/* Delete */}
               <button
                 onClick={handleBulkDelete}
                 style={{
@@ -67,20 +94,6 @@ export default function IdeationPage() {
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
               >
                 <Trash2 size={13} strokeWidth={2} /> Delete {selected.size}
-              </button>
-              <button
-                onClick={() => setSelected(new Set())}
-                style={{
-                  fontFamily: F.mono,
-                  fontSize: '12px',
-                  color: C.text.muted,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px 0',
-                }}
-              >
-                Cancel
               </button>
             </div>
           )}
