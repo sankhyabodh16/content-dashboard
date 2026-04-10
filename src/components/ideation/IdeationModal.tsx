@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { X, ArrowRight, Copy, Check } from 'lucide-react'
 import { IdeationItem } from '../../types'
 import { useStore } from '../../store/useStore'
-import { C, F } from '../../lib/tokens'
+import { C, F, R } from '../../lib/tokens'
 import PlatformBadge from '../ui/PlatformBadge'
 import { Platform } from '../../types'
 
@@ -36,7 +36,6 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [onClose])
 
-  // Auto-save 800ms after the user stops typing
   function scheduleAutosave(newTopic: string, newOutline: string) {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(async () => {
@@ -69,32 +68,35 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
   }
 
   return createPortal(
-    <>
-      {/* Backdrop */}
+    // Backdrop
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 24px',
+      }}
+    >
+      {/* Modal panel */}
       <div
-        onClick={onClose}
+        onClick={(e) => e.stopPropagation()}
         style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.3)',
-          zIndex: 50,
-        }}
-      />
-
-      {/* Sidebar drawer */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: '480px',
           backgroundColor: C.bg.surface,
-          borderLeft: `1px solid ${C.border.default}`,
-          zIndex: 51,
+          border: `1px solid ${C.border.default}`,
+          borderRadius: R.modal,
+          width: '100%',
+          maxWidth: '760px',
+          maxHeight: 'calc(100vh - 80px)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '-16px 0 48px rgba(0,0,0,0.5)',
+          overflow: 'hidden',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
         }}
       >
         {/* Toolbar */}
@@ -103,7 +105,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '14px 20px',
+            padding: '16px 28px',
             borderBottom: `1px solid ${C.border.default}`,
             flexShrink: 0,
           }}
@@ -111,14 +113,11 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
           {item.platform && <PlatformBadge platform={item.platform as Platform} size="sm" />}
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {/* Save status */}
             {saving && (
-              <span style={{ fontFamily: F.mono, fontSize: '11px', color: C.text.muted, marginRight: '4px' }}>
+              <span style={{ fontFamily: F.mono, fontSize: '11px', color: C.text.muted, marginRight: '6px' }}>
                 Saving…
               </span>
             )}
-
-            {/* Copy markdown */}
             <button
               onClick={handleCopy}
               title="Copy as Markdown"
@@ -127,14 +126,14 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
                 border: 'none',
                 cursor: 'pointer',
                 color: copied ? C.accent.green : C.text.muted,
-                padding: '4px 8px',
+                padding: '4px 10px',
                 borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
+                gap: '6px',
                 transition: 'color 0.15s',
                 fontFamily: F.mono,
-                fontSize: '11px',
+                fontSize: '12px',
               }}
               onMouseEnter={(e) => { if (!copied) e.currentTarget.style.color = C.text.primary }}
               onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = C.text.muted }}
@@ -142,8 +141,6 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
               {copied ? <Check size={14} strokeWidth={2} /> : <Copy size={14} strokeWidth={2} />}
               {copied ? 'Copied' : 'Copy MD'}
             </button>
-
-            {/* Close */}
             <button
               onClick={onClose}
               style={{
@@ -166,7 +163,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
         </div>
 
         {/* Scrollable body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '36px 44px 28px' }}>
           {/* Editable title */}
           <textarea
             value={topic}
@@ -175,15 +172,15 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
             style={{
               width: '100%',
               fontFamily: F.display,
-              fontSize: '20px',
+              fontSize: '26px',
               fontWeight: 700,
               color: C.text.primary,
-              lineHeight: 1.35,
+              lineHeight: 1.3,
               background: 'none',
               border: 'none',
               outline: 'none',
               resize: 'none',
-              marginBottom: '20px',
+              marginBottom: '24px',
               padding: 0,
               overflowY: 'hidden',
             }}
@@ -194,8 +191,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
             }}
           />
 
-          {/* Divider */}
-          <div style={{ borderTop: `1px solid ${C.border.default}`, marginBottom: '20px' }} />
+          <div style={{ borderTop: `1px solid ${C.border.default}`, marginBottom: '24px' }} />
 
           {/* Editable outline */}
           <textarea
@@ -204,15 +200,15 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
             style={{
               width: '100%',
               fontFamily: F.body,
-              fontSize: '13px',
+              fontSize: '15px',
               color: C.text.secondary,
-              lineHeight: 1.75,
+              lineHeight: 1.8,
               background: 'none',
               border: 'none',
               outline: 'none',
               resize: 'none',
               padding: 0,
-              minHeight: '300px',
+              minHeight: '260px',
             }}
             onInput={(e) => {
               const el = e.currentTarget
@@ -226,14 +222,14 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
         <div
           style={{
             borderTop: `1px solid ${C.border.default}`,
-            padding: '14px 28px',
+            padding: '16px 44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexShrink: 0,
           }}
         >
-          <span style={{ fontFamily: F.mono, fontSize: '11px', color: C.text.muted }}>
+          <span style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
             {item.source_item_ids.length > 0
               ? `From ${item.source_item_ids.length} list ${item.source_item_ids.length === 1 ? 'item' : 'items'}`
               : 'Generated'}
@@ -245,7 +241,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
               alignItems: 'center',
               gap: '6px',
               fontFamily: F.mono,
-              fontSize: '12px',
+              fontSize: '13px',
               color: C.accent.red,
               background: 'none',
               border: 'none',
@@ -256,11 +252,11 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
             onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.75')}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
           >
-            Write This <ArrowRight size={13} strokeWidth={2} />
+            Write This <ArrowRight size={14} strokeWidth={2} />
           </button>
         </div>
       </div>
-    </>,
+    </div>,
     document.body
   )
 }

@@ -13,7 +13,7 @@ export default function IdeationCard({ item }: IdeationCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
 
-  const previewLines = item.outline.split('\n').filter(Boolean).slice(0, 3)
+  const previewText = item.outline.split('\n').filter(Boolean).slice(0, 2).join(' ')
 
   return (
     <>
@@ -24,9 +24,9 @@ export default function IdeationCard({ item }: IdeationCardProps) {
           backgroundColor: C.bg.surface,
           border: `1px solid ${isHovered ? C.border.hover : C.border.default}`,
           borderRadius: R.card,
-          padding: '20px 24px',
+          padding: '24px',
           transition: 'border-color 0.15s ease',
-          height: '200px',
+          height: '220px',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -41,40 +41,44 @@ export default function IdeationCard({ item }: IdeationCardProps) {
 
         {/* Topic title */}
         <h3
-          className="mb-3"
-          style={{ fontFamily: F.display, fontSize: '16px', fontWeight: 600, color: C.text.primary, lineHeight: 1.4 }}
+          style={{
+            fontFamily: F.display,
+            fontSize: '18px',
+            fontWeight: 600,
+            color: C.text.primary,
+            lineHeight: 1.4,
+            marginBottom: '10px',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
         >
           {item.topic}
         </h3>
 
-        {/* Outline preview — clipped to available space */}
-        <div style={{ flex: 1, overflow: 'hidden', marginBottom: '12px' }}>
-          <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
-            {previewLines.map((line, i) => (
-              <li
-                key={i}
-                style={{
-                  fontFamily: F.body,
-                  fontSize: '13px',
-                  color: C.text.secondary,
-                  lineHeight: 1.6,
-                  paddingLeft: '4px',
-                  marginBottom: '2px',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {line}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* Outline preview */}
+        <p
+          style={{
+            flex: 1,
+            fontFamily: F.body,
+            fontSize: '14px',
+            color: C.text.secondary,
+            lineHeight: 1.6,
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            margin: 0,
+          }}
+        >
+          {previewText}
+        </p>
 
         {/* Footer */}
         <div
           className="flex items-center justify-between pt-3"
-          style={{ borderTop: `1px solid ${C.border.subtle}`, flexShrink: 0 }}
+          style={{ borderTop: `1px solid ${C.border.subtle}`, flexShrink: 0, marginTop: '12px' }}
         >
           <span style={{ fontFamily: F.mono, fontSize: '11px', color: C.text.muted }}>
             {item.source_item_ids.length > 0
