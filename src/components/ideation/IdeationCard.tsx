@@ -26,6 +26,10 @@ export default function IdeationCard({ item }: IdeationCardProps) {
           borderRadius: R.card,
           padding: '20px 24px',
           transition: 'border-color 0.15s ease',
+          height: '200px',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
         {/* Platform badge */}
@@ -43,8 +47,8 @@ export default function IdeationCard({ item }: IdeationCardProps) {
           {item.topic}
         </h3>
 
-        {/* Outline preview — fixed 3 lines, no expand */}
-        <div className="mb-4">
+        {/* Outline preview — clipped to available space */}
+        <div style={{ flex: 1, overflow: 'hidden', marginBottom: '12px' }}>
           <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
             {previewLines.map((line, i) => (
               <li
@@ -70,7 +74,7 @@ export default function IdeationCard({ item }: IdeationCardProps) {
         {/* Footer */}
         <div
           className="flex items-center justify-between pt-3"
-          style={{ borderTop: `1px solid ${C.border.subtle}` }}
+          style={{ borderTop: `1px solid ${C.border.subtle}`, flexShrink: 0 }}
         >
           <span style={{ fontFamily: F.mono, fontSize: '11px', color: C.text.muted }}>
             {item.source_item_ids.length > 0

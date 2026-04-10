@@ -41,9 +41,8 @@ export default function IdeationPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
+              gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '16px',
-              maxWidth: '1200px',
             }}
           >
             {ideationItems.map((item) => (
