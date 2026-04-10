@@ -1,6 +1,6 @@
 # 100 OPS Content Base — Build Progress
 
-Last updated: 2026-04-08 (session 3)
+Last updated: 2026-04-10 (session 4)
 
 ---
 
@@ -151,10 +151,17 @@ O
 - [x] Empty state
 
 ### Ideation Page (`/ideation`)
-- [x] 2-column card grid
-- [x] Each card: topic title, expandable outline, platform badge, source item count
-- [x] **"Write This →" button** — sets `activeIdeation` in store and navigates to Content Studio
+- [x] 3-column fixed-height card grid (no horizontal scroll)
+- [x] Each card: topic title, outline preview (3-line clamp), platform badge, source item count
+- [x] **Click anywhere on card** — opens full-content modal
+- [x] **Notion-style modal** — centered overlay, 900px wide, full viewport height, editable title + outline, auto-saves 800ms after keystroke, Copy MD button, Write This → button
+- [x] **Delete** — trash icon on card (hover-only) and in modal toolbar; permanently deletes from Supabase
+- [x] **Bulk delete** — checkbox (grey, custom) appears on card hover; bulk bar in top-right shows selected count, Deselect All, Delete N; fires single `DELETE ... IN (ids)` to Supabase
+- [x] **DELETE RLS policy** added on `ideation_items` for anon role
+- [x] `updateIdeationItem`, `deleteIdeationItem`, `deleteIdeationItems` — API + store actions with optimistic revert
+- [x] **"Write This →"** — passes edited topic/outline (not stale original) to Content Studio
 - [x] Empty state
+- [x] `/content-repurpose` skill — fetches 3 unprocessed bookmarked items, generates LinkedIn ideas via AI Bridge methodology, saves to `ideation_items`
 
 ### Content Studio Page (`/content-studio`)
 - [x] Two-column layout: left panel (inputs + preview) / right panel (generated output)
@@ -195,6 +202,7 @@ O
 - [x] `posts_scraped` now uses real DB count (idempotent — re-runs don't inflate)
 - [x] LinkedIn `connection_count` column now read directly in UI (separate from `followers`)
 - [x] Reddit `subreddit_subscribers` → `creators.followers` on each scrape run
+- [x] **Reddit scrape config** — reduced from 20 → 10 posts per subreddit; sort changed from `hot` → `top` (daily timeframe)
 - [x] YouTube subscriber count fixed — reads from `aboutChannelInfo.numberOfSubscribers`
 - [x] Creator page `getMetric` — shows `—` for zero/missing values instead of `0`
 - [x] **GitHub Actions workflows** — 5 workflow files (`scrape-reddit`, `scrape-linkedin`, `scrape-youtube`, `extract-trending`, `extract-ideation`), all `workflow_dispatch` triggered
@@ -219,6 +227,7 @@ O
 - [x] **Step 4** — Deployed to Vercel ✅ live
 - [x] **Step 5** — Scrape Now wired: GitHub dispatch API from frontend, `VITE_GITHUB_TOKEN` + `VITE_GITHUB_REPO` added to `.env` and Vercel env vars ✅ live (2026-03-30)
 - [x] **Step 6** — `updateCreator` persists to Supabase (async with optimistic revert)
+- [x] **Vercel SPA rewrite** — `vercel.json` added with catch-all rewrite to `index.html`; fixes 404 on hard refresh (Cmd+Shift+R)
 
 ### Known bugs — audit (2026-03-25)
 
@@ -290,8 +299,9 @@ src/
     ├── list/
     │   └── ListPage.tsx            ✅
     ├── ideation/
-    │   ├── IdeationPage.tsx        ✅
-    │   └── IdeationCard.tsx        ✅
+    │   ├── IdeationPage.tsx        ✅ 3-col grid, bulk select/delete
+    │   ├── IdeationCard.tsx        ✅ Click-to-open, checkbox, trash
+    │   └── IdeationModal.tsx       ✅ Editable, auto-save, Copy MD, delete
     ├── creators/
     │   ├── CreatorListPage.tsx     ✅ Platform-grouped, metric columns, clickable rows
     │   ├── CreatorDetailModal.tsx  ✅ Metrics, edit, remove confirm
