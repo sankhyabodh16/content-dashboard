@@ -25,7 +25,9 @@ export default function IdeationCard({ item, selected, onSelect }: IdeationCardP
       <article
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setModalOpen(true)}
         style={{
+          cursor: 'pointer',
           backgroundColor: selected ? C.bg.elevated : C.bg.surface,
           border: `1px solid ${selected ? C.border.hover : isHovered ? C.border.hover : C.border.default}`,
           borderRadius: R.card,
@@ -135,32 +137,6 @@ export default function IdeationCard({ item, selected, onSelect }: IdeationCardP
               <Trash2 size={14} strokeWidth={2} />
             </button>
 
-            {/* Open */}
-            <button
-              onClick={() => setModalOpen(true)}
-              style={{
-                fontFamily: F.mono,
-                fontSize: '11px',
-                color: C.text.secondary,
-                background: 'none',
-                border: `1px solid ${C.border.default}`,
-                borderRadius: '6px',
-                cursor: 'pointer',
-                padding: '4px 10px',
-                letterSpacing: '0.03em',
-                transition: 'border-color 0.15s, color 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = C.border.hover
-                e.currentTarget.style.color = C.text.primary
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = C.border.default
-                e.currentTarget.style.color = C.text.secondary
-              }}
-            >
-              Open
-            </button>
           </div>
         </div>
       </article>
