@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { X, ArrowRight } from 'lucide-react'
+import { X, ArrowRight, Copy, Check } from 'lucide-react'
 import { IdeationItem } from '../../types'
 import { useStore } from '../../store/useStore'
-import { C, F, R } from '../../lib/tokens'
+import { C, F } from '../../lib/tokens'
 import PlatformBadge from '../ui/PlatformBadge'
 import { Platform } from '../../types'
 
@@ -13,11 +13,21 @@ interface IdeationModalProps {
   onClose: () => void
 }
 
+function toMarkdown(topic: string, outline: string): string {
+  return `# ${topic}\n\n${outline}`
+}
+
 export default function IdeationModal({ item, onClose }: IdeationModalProps) {
   const setActiveIdeation = useStore((s) => s.setActiveIdeation)
+  const updateIdeationItem = useStore((s) => s.updateIdeationItem)
   const navigate = useNavigate()
 
-  // Close on Escape
+  const [topic, setTopic] = useState(item.topic)
+  const [outline, setOutline] = useState(item.outline)
+  const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
@@ -26,46 +36,65 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [onClose])
 
+  // Auto-save 800ms after the user stops typing
+  function scheduleAutosave(newTopic: string, newOutline: string) {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(async () => {
+      setSaving(true)
+      await updateIdeationItem(item.id, { topic: newTopic, outline: newOutline })
+      setSaving(false)
+    }, 800)
+  }
+
+  function handleTopicChange(val: string) {
+    setTopic(val)
+    scheduleAutosave(val, outline)
+  }
+
+  function handleOutlineChange(val: string) {
+    setOutline(val)
+    scheduleAutosave(topic, val)
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(toMarkdown(topic, outline))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   function handleWrite() {
-    setActiveIdeation(item)
+    setActiveIdeation({ ...item, topic, outline })
     navigate('/content-studio')
     onClose()
   }
 
-  // Split outline into paragraphs on blank lines
-  const paragraphs = item.outline.split(/\n{2,}/)
-
   return createPortal(
-    // Backdrop
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(4px)',
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        paddingTop: '60px',
-        paddingBottom: '60px',
-      }}
-    >
-      {/* Modal panel */}
+    <>
+      {/* Backdrop */}
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={onClose}
         style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.3)',
+          zIndex: 50,
+        }}
+      />
+
+      {/* Sidebar drawer */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: '480px',
           backgroundColor: C.bg.surface,
-          border: `1px solid ${C.border.default}`,
-          borderRadius: R.modal,
-          width: '100%',
-          maxWidth: '680px',
-          maxHeight: 'calc(100vh - 120px)',
+          borderLeft: `1px solid ${C.border.default}`,
+          zIndex: 51,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+          boxShadow: '-16px 0 48px rgba(0,0,0,0.5)',
         }}
       >
         {/* Toolbar */}
@@ -73,127 +102,131 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            gap: '8px',
             padding: '14px 20px',
-            borderBottom: `1px solid ${C.border.subtle}`,
+            borderBottom: `1px solid ${C.border.default}`,
             flexShrink: 0,
           }}
         >
           {item.platform && <PlatformBadge platform={item.platform as Platform} size="sm" />}
-          <button
-            onClick={onClose}
-            style={{
-              marginLeft: 'auto',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: C.text.muted,
-              padding: '4px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = C.text.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = C.text.muted)}
-          >
-            <X size={16} strokeWidth={2} />
-          </button>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {/* Save status */}
+            {saving && (
+              <span style={{ fontFamily: F.mono, fontSize: '11px', color: C.text.muted, marginRight: '4px' }}>
+                Saving…
+              </span>
+            )}
+
+            {/* Copy markdown */}
+            <button
+              onClick={handleCopy}
+              title="Copy as Markdown"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: copied ? C.accent.green : C.text.muted,
+                padding: '4px 8px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                transition: 'color 0.15s',
+                fontFamily: F.mono,
+                fontSize: '11px',
+              }}
+              onMouseEnter={(e) => { if (!copied) e.currentTarget.style.color = C.text.primary }}
+              onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = C.text.muted }}
+            >
+              {copied ? <Check size={14} strokeWidth={2} /> : <Copy size={14} strokeWidth={2} />}
+              {copied ? 'Copied' : 'Copy MD'}
+            </button>
+
+            {/* Close */}
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: C.text.muted,
+                padding: '4px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = C.text.primary)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = C.text.muted)}
+            >
+              <X size={16} strokeWidth={2} />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable body */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '32px 40px',
-          }}
-        >
-          {/* Title */}
-          <h2
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+          {/* Editable title */}
+          <textarea
+            value={topic}
+            onChange={(e) => handleTopicChange(e.target.value)}
+            rows={2}
             style={{
+              width: '100%',
               fontFamily: F.display,
-              fontSize: '22px',
+              fontSize: '20px',
               fontWeight: 700,
               color: C.text.primary,
               lineHeight: 1.35,
-              marginBottom: '28px',
+              background: 'none',
+              border: 'none',
+              outline: 'none',
+              resize: 'none',
+              marginBottom: '20px',
+              padding: 0,
+              overflowY: 'hidden',
             }}
-          >
-            {item.topic}
-          </h2>
+            onInput={(e) => {
+              const el = e.currentTarget
+              el.style.height = 'auto'
+              el.style.height = el.scrollHeight + 'px'
+            }}
+          />
 
-          {/* Outline paragraphs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {paragraphs.map((para, i) => {
-              const isKeyPoints = para.startsWith('Key Points:')
-              if (isKeyPoints) {
-                const lines = para.split('\n').filter(Boolean)
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      borderTop: `1px solid ${C.border.default}`,
-                      paddingTop: '20px',
-                      marginTop: '4px',
-                    }}
-                  >
-                    <p
-                      style={{
-                        fontFamily: F.mono,
-                        fontSize: '11px',
-                        color: C.text.muted,
-                        letterSpacing: '0.08em',
-                        textTransform: 'uppercase',
-                        marginBottom: '12px',
-                      }}
-                    >
-                      Key Points
-                    </p>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {lines.slice(1).map((line, j) => (
-                        <li
-                          key={j}
-                          style={{
-                            display: 'flex',
-                            gap: '10px',
-                            fontFamily: F.body,
-                            fontSize: '14px',
-                            color: C.text.secondary,
-                            lineHeight: 1.6,
-                          }}
-                        >
-                          <span style={{ color: C.accent.red, flexShrink: 0, marginTop: '2px' }}>•</span>
-                          <span>{line.replace(/^[•\-]\s*/, '')}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              }
-              return (
-                <p
-                  key={i}
-                  style={{
-                    fontFamily: F.body,
-                    fontSize: '14px',
-                    color: C.text.secondary,
-                    lineHeight: 1.75,
-                    margin: 0,
-                  }}
-                >
-                  {para}
-                </p>
-              )
-            })}
-          </div>
+          {/* Divider */}
+          <div style={{ borderTop: `1px solid ${C.border.default}`, marginBottom: '20px' }} />
+
+          {/* Editable outline */}
+          <textarea
+            value={outline}
+            onChange={(e) => handleOutlineChange(e.target.value)}
+            style={{
+              width: '100%',
+              fontFamily: F.body,
+              fontSize: '13px',
+              color: C.text.secondary,
+              lineHeight: 1.75,
+              background: 'none',
+              border: 'none',
+              outline: 'none',
+              resize: 'none',
+              padding: 0,
+              minHeight: '300px',
+            }}
+            onInput={(e) => {
+              const el = e.currentTarget
+              el.style.height = 'auto'
+              el.style.height = el.scrollHeight + 'px'
+            }}
+          />
         </div>
 
         {/* Footer */}
         <div
           style={{
             borderTop: `1px solid ${C.border.default}`,
-            padding: '16px 40px',
+            padding: '14px 28px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -207,8 +240,10 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
           </span>
           <button
             onClick={handleWrite}
-            className="flex items-center gap-1.5"
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
               fontFamily: F.mono,
               fontSize: '12px',
               color: C.accent.red,
@@ -225,7 +260,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
           </button>
         </div>
       </div>
-    </div>,
+    </>,
     document.body
   )
 }

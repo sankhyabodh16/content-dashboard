@@ -36,6 +36,7 @@ interface AppState {
   setFilter: (filter: Platform | 'all') => void
   toggleFilter: (filter: Platform | 'all') => void
   setActiveIdeation: (item: IdeationItem | null) => void
+  updateIdeationItem: (id: string, patch: { topic: string; outline: string }) => Promise<void>
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -261,6 +262,26 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setActiveIdeation: (item) => set({ activeIdeation: item }),
+
+  updateIdeationItem: async (id, patch) => {
+    const prev = get().ideationItems.find((i) => i.id === id)
+    if (!prev) return
+
+    // Optimistic update
+    set((state) => ({
+      ideationItems: state.ideationItems.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+    }))
+
+    if (!isSupabaseConfigured) return
+
+    const { error } = await api.updateIdeationItem(id, patch)
+    if (error) {
+      // Revert
+      set((state) => ({
+        ideationItems: state.ideationItems.map((i) => (i.id === id ? prev : i)),
+      }))
+    }
+  },
 }))
 
 // Re-export useShallow for convenience

@@ -108,6 +108,10 @@ export async function fetchIdeationItems() {
     .order('created_at', { ascending: false })
 }
 
+export async function updateIdeationItem(id: string, patch: { topic: string; outline: string }) {
+  return await supabase.from('ideation_items').update(patch).eq('id', id)
+}
+
 export async function saveDraft(draft: {
   ideation_item_id?: string
   platform: string
