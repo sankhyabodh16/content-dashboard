@@ -91,8 +91,8 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
           border: `1px solid ${C.border.default}`,
           borderRadius: R.modal,
           width: '100%',
-          maxWidth: '760px',
-          maxHeight: 'calc(100vh - 80px)',
+          maxWidth: '900px',
+          height: 'calc(100vh - 80px)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -208,7 +208,7 @@ export default function IdeationModal({ item, onClose }: IdeationModalProps) {
               outline: 'none',
               resize: 'none',
               padding: 0,
-              minHeight: '260px',
+              minHeight: '500px',
             }}
             onInput={(e) => {
               const el = e.currentTarget
