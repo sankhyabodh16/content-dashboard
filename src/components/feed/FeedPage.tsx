@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Archive } from 'lucide-react'
 import { useStore, useShallow } from '../../store/useStore'
 import { C, F, R } from '../../lib/tokens'
 import { Platform } from '../../types'
@@ -13,6 +15,7 @@ export default function FeedPage() {
   )
   const [confirmClear, setConfirmClear] = useState(false)
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([])
+  const navigate = useNavigate()
 
   function handleToggle(p: Platform) {
     setSelectedPlatforms((prev) =>
@@ -52,34 +55,65 @@ export default function FeedPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleClearFeed}
-          style={{
-            backgroundColor: confirmClear ? C.accent.red : 'transparent',
-            border: `1px solid ${confirmClear ? C.accent.red : C.border.default}`,
-            borderRadius: R.input,
-            padding: '8px 14px',
-            color: confirmClear ? '#fff' : C.text.muted,
-            fontFamily: F.mono,
-            fontSize: '12px',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-          onMouseEnter={(e) => {
-            if (!confirmClear) {
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/archive')}
+            style={{
+              backgroundColor: 'transparent',
+              border: `1px solid ${C.border.default}`,
+              borderRadius: R.input,
+              padding: '8px 14px',
+              color: C.text.muted,
+              fontFamily: F.mono,
+              fontSize: '12px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = C.border.hover
               e.currentTarget.style.color = C.text.secondary
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!confirmClear) {
+            }}
+            onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = C.border.default
               e.currentTarget.style.color = C.text.muted
-            }
-          }}
-        >
-          {confirmClear ? 'CONFIRM CLEAR?' : 'CLEAR FEED'}
-        </button>
+            }}
+          >
+            <Archive size={13} strokeWidth={1.8} />
+            ARCHIVE
+          </button>
+
+          <button
+            onClick={handleClearFeed}
+            style={{
+              backgroundColor: confirmClear ? C.accent.red : 'transparent',
+              border: `1px solid ${confirmClear ? C.accent.red : C.border.default}`,
+              borderRadius: R.input,
+              padding: '8px 14px',
+              color: confirmClear ? '#fff' : C.text.muted,
+              fontFamily: F.mono,
+              fontSize: '12px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={(e) => {
+              if (!confirmClear) {
+                e.currentTarget.style.borderColor = C.border.hover
+                e.currentTarget.style.color = C.text.secondary
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!confirmClear) {
+                e.currentTarget.style.borderColor = C.border.default
+                e.currentTarget.style.color = C.text.muted
+              }
+            }}
+          >
+            {confirmClear ? 'CONFIRM CLEAR?' : 'CLEAR FEED'}
+          </button>
+        </div>
       </div>
 
       {/* Content area — 3 columns */}

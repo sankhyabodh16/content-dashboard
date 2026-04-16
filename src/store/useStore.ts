@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
-import { FeedItem, Creator, TrendingTopic, Platform, IdeationItem } from '../types'
+import { FeedItem, Creator, TrendingTopic, Platform } from '../types'
 import { PLATFORM_COLORS } from '../lib/tokens'
 import { isSupabaseConfigured } from '../lib/supabase'
 import * as api from '../lib/api'
@@ -10,8 +10,6 @@ interface AppState {
   feedItems: FeedItem[]
   creators: Creator[]
   trending: TrendingTopic[]
-  ideationItems: IdeationItem[]
-  activeIdeation: IdeationItem | null
 
   // UI state
   activeFilter: Platform[]
@@ -35,18 +33,12 @@ interface AppState {
   // UI actions
   setFilter: (filter: Platform | 'all') => void
   toggleFilter: (filter: Platform | 'all') => void
-  setActiveIdeation: (item: IdeationItem | null) => void
-  updateIdeationItem: (id: string, patch: { topic: string; outline: string }) => Promise<void>
-  deleteIdeationItem: (id: string) => Promise<void>
-  deleteIdeationItems: (ids: string[]) => Promise<void>
 }
 
 export const useStore = create<AppState>((set, get) => ({
   feedItems: [],
   creators: [],
   trending: [],
-  ideationItems: [],
-  activeIdeation: null,
   activeFilter: [],
   isLoading: false,
 
@@ -61,18 +53,16 @@ export const useStore = create<AppState>((set, get) => ({
 
     set({ isLoading: true })
 
-    const [feedRes, creatorsRes, trendingRes, ideationRes] = await Promise.all([
+    const [feedRes, creatorsRes, trendingRes] = await Promise.all([
       api.fetchFeedItems(),
       api.fetchCreators(),
       api.fetchTrending(),
-      api.fetchIdeationItems(),
     ])
 
     set({
       feedItems: feedRes.data ?? [],
       creators: creatorsRes.data ?? [],
       trending: trendingRes.data ?? [],
-      ideationItems: ideationRes.data ?? [],
       isLoading: false,
     })
   },
@@ -261,44 +251,6 @@ export const useStore = create<AppState>((set, get) => ({
       ? current.filter((f) => f !== filter)
       : [...current, filter]
     set({ activeFilter: next })
-  },
-
-  setActiveIdeation: (item) => set({ activeIdeation: item }),
-
-  deleteIdeationItem: async (id) => {
-    const prev = get().ideationItems
-    set((state) => ({ ideationItems: state.ideationItems.filter((i) => i.id !== id) }))
-    if (!isSupabaseConfigured) return
-    const { error } = await api.deleteIdeationItem(id)
-    if (error) set({ ideationItems: prev })
-  },
-
-  deleteIdeationItems: async (ids) => {
-    const prev = get().ideationItems
-    set((state) => ({ ideationItems: state.ideationItems.filter((i) => !ids.includes(i.id)) }))
-    if (!isSupabaseConfigured) return
-    const { error } = await api.deleteIdeationItems(ids)
-    if (error) set({ ideationItems: prev })
-  },
-
-  updateIdeationItem: async (id, patch) => {
-    const prev = get().ideationItems.find((i) => i.id === id)
-    if (!prev) return
-
-    // Optimistic update
-    set((state) => ({
-      ideationItems: state.ideationItems.map((i) => (i.id === id ? { ...i, ...patch } : i)),
-    }))
-
-    if (!isSupabaseConfigured) return
-
-    const { error } = await api.updateIdeationItem(id, patch)
-    if (error) {
-      // Revert
-      set((state) => ({
-        ideationItems: state.ideationItems.map((i) => (i.id === id ? prev : i)),
-      }))
-    }
   },
 }))
 

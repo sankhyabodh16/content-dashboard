@@ -1,24 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import {
-  Rss,
-  Users,
-  List,
-  Archive,
-  Sparkles,
-  Lightbulb,
-  Megaphone,
-  FileText,
-  BarChart3,
-  Settings,
-  type LucideIcon,
-} from 'lucide-react'
+import { Rss, Users, List, Settings, type LucideIcon } from 'lucide-react'
 import { C, F } from '../../lib/tokens'
 
 interface NavItem {
   label: string
   path: string
   icon: LucideIcon
-  comingSoon?: boolean
 }
 
 const navSections: { header: string; items: NavItem[] }[] = [
@@ -28,22 +15,6 @@ const navSections: { header: string; items: NavItem[] }[] = [
       { label: 'Creator List', path: '/creators', icon: Users },
       { label: 'Feed', path: '/', icon: Rss },
       { label: 'List', path: '/list', icon: List },
-      { label: 'Archive', path: '/archive', icon: Archive },
-    ],
-  },
-  {
-    header: 'AI CREATION',
-    items: [
-      { label: 'Ideation', path: '/ideation', icon: Lightbulb },
-      { label: 'Content Studio', path: '/content-studio', icon: Sparkles },
-      { label: 'Brand Voice', path: '/brand-voice', icon: Megaphone },
-      { label: 'Saved Drafts', path: '/saved-drafts', icon: FileText },
-    ],
-  },
-  {
-    header: 'ANALYTICS',
-    items: [
-      { label: 'Performance', path: '/performance', icon: BarChart3, comingSoon: true },
     ],
   },
 ]
@@ -141,21 +112,6 @@ export default function Sidebar() {
               >
                 <item.icon size={16} strokeWidth={1.8} />
                 <span className="flex-1">{item.label}</span>
-                {item.comingSoon && (
-                  <span
-                    className="rounded-full"
-                    style={{
-                      fontFamily: F.mono,
-                      fontSize: '9px',
-                      backgroundColor: 'rgba(255,178,36,0.12)',
-                      color: C.accent.orange,
-                      padding: '2px 6px',
-                      letterSpacing: '0.05em',
-                    }}
-                  >
-                    SOON
-                  </span>
-                )}
               </NavLink>
             ))}
           </div>

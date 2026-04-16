@@ -49,23 +49,3 @@ export interface TrendingTopic {
   platform: string | null
   created_at: string
 }
-
-export interface IdeationItem {
-  id: string
-  topic: string
-  outline: string
-  source_item_ids: string[]
-  status: 'idea' | 'writing' | 'drafted' | 'published'
-  platform: Platform | null
-  created_at: string
-}
-
-export interface ContentDraft {
-  id: string
-  ideation_item_id: string | null
-  platform: Platform
-  content: string
-  status: 'draft' | 'reviewed' | 'published'
-  created_at: string
-  updated_at: string
-}
