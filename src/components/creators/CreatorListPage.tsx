@@ -77,8 +77,8 @@ function getMetric(creator: Creator, key: string): string {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function CreatorListPage() {
-  const { creators, removeCreator } = useStore(
-    useShallow((s) => ({ creators: s.creators, removeCreator: s.removeCreator }))
+  const { creators, feedItems, removeCreator } = useStore(
+    useShallow((s) => ({ creators: s.creators, feedItems: s.feedItems, removeCreator: s.removeCreator }))
   )
   const [showModal, setShowModal] = useState(false)
   const [selected, setSelected] = useState<Creator | null>(null)
@@ -92,9 +92,18 @@ export default function CreatorListPage() {
     return map
   }, [creators])
 
+  const postsByCreator = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const item of feedItems) {
+      if (!item.creator_id) continue
+      map[item.creator_id] = (map[item.creator_id] ?? 0) + 1
+    }
+    return map
+  }, [feedItems])
+
   const totalPosts = useMemo(
-    () => creators.reduce((acc, c) => acc + c.posts_scraped, 0),
-    [creators],
+    () => creators.reduce((acc, c) => acc + (postsByCreator[c.id] ?? 0), 0),
+    [creators, postsByCreator],
   )
 
   const platforms = PLATFORM_ORDER.filter((p) => grouped[p]?.length)
@@ -174,6 +183,7 @@ export default function CreatorListPage() {
                 key={platform}
                 platform={platform}
                 creators={grouped[platform]!}
+                postsByCreator={postsByCreator}
                 onCreatorClick={setSelected}
               />
             ))}
@@ -195,11 +205,9 @@ export default function CreatorListPage() {
 
 // ─── Platform group ───────────────────────────────────────────────────────────
 
-function PlatformGroup({ platform, creators, onCreatorClick }: { platform: Platform; creators: Creator[]; onCreatorClick: (c: Creator) => void }) {
+function PlatformGroup({ platform, creators, postsByCreator, onCreatorClick }: { platform: Platform; creators: Creator[]; postsByCreator: Record<string, number>; onCreatorClick: (c: Creator) => void }) {
   const config = PLATFORM_CONFIG[platform]
   const color = config.color
-
-  const totalPosts = creators.reduce((acc, c) => acc + c.posts_scraped, 0)
 
   // Determine grid columns: with or without col2
   const hasCol2 = config.col2 !== null
@@ -308,6 +316,7 @@ function PlatformGroup({ platform, creators, onCreatorClick }: { platform: Platf
             color={color}
             gridCols={gridCols}
             hasCol2={hasCol2}
+            postsCount={postsByCreator[creator.id] ?? 0}
             isLast={i === creators.length - 1}
             onClick={() => onCreatorClick(creator)}
           />
@@ -325,6 +334,7 @@ function CreatorRow({
   color,
   gridCols,
   hasCol2,
+  postsCount,
   isLast,
   onClick,
 }: {
@@ -333,6 +343,7 @@ function CreatorRow({
   color: string
   gridCols: string
   hasCol2: boolean
+  postsCount: number
   isLast: boolean
   onClick: () => void
 }) {
@@ -395,7 +406,7 @@ function CreatorRow({
 
       {/* Posts scraped */}
       <span style={{ fontFamily: F.mono, fontSize: '13px', color: C.text.primary }}>
-        {creator.posts_scraped.toLocaleString()}
+        {postsCount.toLocaleString()}
       </span>
 
       {/* Last scraped */}
