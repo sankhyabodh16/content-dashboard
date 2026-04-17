@@ -93,6 +93,33 @@ export async function addCreator(creator: {
   return await supabase.from('creators').insert(creator).select().single()
 }
 
+export async function fetchContentIdeas() {
+  return await supabase
+    .from('content_ideas')
+    .select('*')
+    .order('updated_at', { ascending: false })
+}
+
+export async function createContentIdea(idea: { title: string; outline: string; source_platform_id: string | null }) {
+  return await supabase.from('content_ideas').insert(idea).select().single()
+}
+
+export async function updateContentIdea(
+  id: string,
+  patch: Partial<{ title: string; outline: string; source_platform_id: string | null }>
+) {
+  return await supabase
+    .from('content_ideas')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+}
+
+export async function deleteContentIdea(id: string) {
+  return await supabase.from('content_ideas').delete().eq('id', id)
+}
+
 export async function fetchTrending() {
   return await supabase
     .from('trending_topics')

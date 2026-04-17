@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
-import { FeedItem, Creator, TrendingTopic, Platform } from '../types'
+import { FeedItem, Creator, TrendingTopic, ContentIdea, Platform } from '../types'
 import { PLATFORM_COLORS } from '../lib/tokens'
 import { isSupabaseConfigured } from '../lib/supabase'
 import * as api from '../lib/api'
@@ -10,6 +10,7 @@ interface AppState {
   feedItems: FeedItem[]
   creators: Creator[]
   trending: TrendingTopic[]
+  contentIdeas: ContentIdea[]
 
   // UI state
   activeFilter: Platform[]
@@ -30,6 +31,11 @@ interface AppState {
   removeCreator: (id: string) => Promise<void>
   updateCreator: (id: string, patch: Pick<Creator, 'name' | 'handle' | 'profile_url'>) => Promise<void>
 
+  // Content idea mutations
+  createIdea: (source_platform_id: string | null) => Promise<ContentIdea | null>
+  updateIdea: (id: string, patch: Partial<Pick<ContentIdea, 'title' | 'outline' | 'source_platform_id'>>) => Promise<void>
+  deleteIdea: (id: string) => Promise<void>
+
   // UI actions
   setFilter: (filter: Platform | 'all') => void
   toggleFilter: (filter: Platform | 'all') => void
@@ -39,6 +45,7 @@ export const useStore = create<AppState>((set, get) => ({
   feedItems: [],
   creators: [],
   trending: [],
+  contentIdeas: [],
   activeFilter: [],
   isLoading: false,
 
@@ -53,16 +60,18 @@ export const useStore = create<AppState>((set, get) => ({
 
     set({ isLoading: true })
 
-    const [feedRes, creatorsRes, trendingRes] = await Promise.all([
+    const [feedRes, creatorsRes, trendingRes, ideasRes] = await Promise.all([
       api.fetchFeedItems(),
       api.fetchCreators(),
       api.fetchTrending(),
+      api.fetchContentIdeas(),
     ])
 
     set({
       feedItems: feedRes.data ?? [],
       creators: creatorsRes.data ?? [],
       trending: trendingRes.data ?? [],
+      contentIdeas: (ideasRes.data as ContentIdea[] | null) ?? [],
       isLoading: false,
     })
   },
@@ -247,6 +256,74 @@ export const useStore = create<AppState>((set, get) => ({
       set((state) => ({
         creators: state.creators.map((c) => (c.id === id ? prev : c)),
       }))
+    }
+  },
+
+  createIdea: async (source_platform_id) => {
+    const now = new Date().toISOString()
+    const tempId = `temp_${Date.now()}`
+    const draft: ContentIdea = {
+      id: tempId,
+      title: '',
+      outline: '',
+      source_platform_id,
+      created_at: now,
+      updated_at: now,
+    }
+
+    set((state) => ({ contentIdeas: [draft, ...state.contentIdeas] }))
+
+    if (!isSupabaseConfigured) return draft
+
+    const { data, error } = await api.createContentIdea({
+      title: '',
+      outline: '',
+      source_platform_id,
+    })
+
+    if (error || !data) {
+      set((state) => ({ contentIdeas: state.contentIdeas.filter((i) => i.id !== tempId) }))
+      return null
+    }
+
+    const real = data as ContentIdea
+    set((state) => ({
+      contentIdeas: state.contentIdeas.map((i) => (i.id === tempId ? real : i)),
+    }))
+    return real
+  },
+
+  updateIdea: async (id, patch) => {
+    const prev = get().contentIdeas.find((i) => i.id === id)
+    if (!prev) return
+
+    set((state) => ({
+      contentIdeas: state.contentIdeas.map((i) =>
+        i.id === id ? { ...i, ...patch, updated_at: new Date().toISOString() } : i
+      ),
+    }))
+
+    if (!isSupabaseConfigured) return
+    if (id.startsWith('temp_')) return
+
+    const { error } = await api.updateContentIdea(id, patch)
+    if (error) {
+      set((state) => ({
+        contentIdeas: state.contentIdeas.map((i) => (i.id === id ? prev : i)),
+      }))
+    }
+  },
+
+  deleteIdea: async (id) => {
+    const prev = get().contentIdeas
+    set((state) => ({ contentIdeas: state.contentIdeas.filter((i) => i.id !== id) }))
+
+    if (!isSupabaseConfigured) return
+    if (id.startsWith('temp_')) return
+
+    const { error } = await api.deleteContentIdea(id)
+    if (error) {
+      set({ contentIdeas: prev })
     }
   },
 

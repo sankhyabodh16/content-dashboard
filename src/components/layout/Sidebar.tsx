@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Rss, Users, BookMarked, Settings, type LucideIcon } from 'lucide-react'
+import { Rss, Users, BookMarked, Sparkles, Settings, type LucideIcon } from 'lucide-react'
 import { C, F } from '../../lib/tokens'
 
 interface NavItem {
@@ -16,6 +16,10 @@ const navSections: { header: string; items: NavItem[] }[] = [
       { label: 'Feed', path: '/', icon: Rss },
       { label: 'Library', path: '/library', icon: BookMarked },
     ],
+  },
+  {
+    header: 'AI STUDIO',
+    items: [{ label: 'Content Ideas', path: '/ideas', icon: Sparkles }],
   },
 ]
 

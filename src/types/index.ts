@@ -42,6 +42,15 @@ export interface Creator {
   metrics?: Record<string, string>
 }
 
+export interface ContentIdea {
+  id: string
+  title: string
+  outline: string
+  source_platform_id: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface TrendingTopic {
   id: string
   category: string
