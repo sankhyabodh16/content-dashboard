@@ -33,10 +33,10 @@ export async function fetchArchived() {
     .order('scraped_at', { ascending: false })
 }
 
-export async function toggleBookmark(platformId: string, current: boolean) {
+export async function toggleBookmark(platformId: string, nextBookmarked: boolean, nextTags: string[]) {
   return await supabase
     .from('feed_items')
-    .update({ is_bookmarked: !current })
+    .update({ is_bookmarked: nextBookmarked, tags: nextTags })
     .eq('platform_id', platformId)
 }
 

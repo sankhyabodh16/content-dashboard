@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ExternalLink, X, ListPlus, ListMinus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ExternalLink, X, BookmarkPlus, BookmarkMinus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { FeedItem } from '../../types'
 import { useStore, useShallow } from '../../store/useStore'
 import { timeAgo } from '../../lib/utils'
@@ -130,8 +130,8 @@ function ImageCarousel({ urls, postUrl }: { urls: string[]; postUrl?: string }) 
 }
 
 export default function FeedCard({ item }: FeedCardProps) {
-  const { toggleList, hidePost } = useStore(
-    useShallow((s) => ({ toggleList: s.toggleList, hidePost: s.hidePost }))
+  const { toggleLibrary, hidePost } = useStore(
+    useShallow((s) => ({ toggleLibrary: s.toggleLibrary, hidePost: s.hidePost }))
   )
   const [expanded, setExpanded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -301,9 +301,9 @@ export default function FeedCard({ item }: FeedCardProps) {
         <ActionButton onClick={() => hidePost(item.platform_id)} title="Archive post">
           <X size={16} strokeWidth={1.8} />
         </ActionButton>
-        {/* Add to List — right side */}
+        {/* Save to Library — right side */}
         <button
-          onClick={() => toggleList(item.platform_id)}
+          onClick={() => toggleLibrary(item.platform_id)}
           className="ml-auto flex items-center gap-1.5"
           style={{
             fontFamily: F.mono,
@@ -323,11 +323,11 @@ export default function FeedCard({ item }: FeedCardProps) {
           onMouseLeave={(e) => {
             if (!item.is_bookmarked) e.currentTarget.style.color = C.text.muted
           }}
-          title={item.is_bookmarked ? 'Remove from List' : 'Add to List'}
+          title={item.is_bookmarked ? 'Remove from Library' : 'Save to Library'}
         >
           {item.is_bookmarked
-            ? <><ListMinus size={14} strokeWidth={2} /> Remove from List</>
-            : <><ListPlus size={14} strokeWidth={2} /> Add to List</>
+            ? <><BookmarkMinus size={14} strokeWidth={2} /> Remove from Library</>
+            : <><BookmarkPlus size={14} strokeWidth={2} /> Save to Library</>
           }
         </button>
       </div>

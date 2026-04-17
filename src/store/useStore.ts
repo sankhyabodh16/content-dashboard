@@ -19,7 +19,7 @@ interface AppState {
   initialize: () => Promise<void>
 
   // Feed mutations
-  toggleList: (id: string) => Promise<void>
+  toggleLibrary: (id: string) => Promise<void>
   hidePost: (id: string) => Promise<void>
   restorePost: (id: string) => Promise<void>
   clearFeed: () => Promise<void>
@@ -67,27 +67,38 @@ export const useStore = create<AppState>((set, get) => ({
     })
   },
 
-  toggleList: async (platformId) => {
+  toggleLibrary: async (platformId) => {
     const item = get().feedItems.find((i) => i.platform_id === platformId)
     if (!item) return
 
-    const prev = item.is_bookmarked
+    const prevBookmarked = item.is_bookmarked
+    const prevTags = item.tags ?? []
+    const nextBookmarked = !prevBookmarked
+
+    let nextTags: string[]
+    if (nextBookmarked) {
+      // Adding to library — tag as yet-to-ideate (dedup)
+      nextTags = prevTags.includes('yet-to-ideate') ? prevTags : [...prevTags, 'yet-to-ideate']
+    } else {
+      // Removing from library — strip both state tags
+      nextTags = prevTags.filter((t) => t !== 'yet-to-ideate' && t !== 'ideation-complete')
+    }
 
     // Optimistic update
     set((state) => ({
       feedItems: state.feedItems.map((i) =>
-        i.platform_id === platformId ? { ...i, is_bookmarked: !prev } : i
+        i.platform_id === platformId ? { ...i, is_bookmarked: nextBookmarked, tags: nextTags } : i
       ),
     }))
 
     if (!isSupabaseConfigured) return
 
-    const { error } = await api.toggleBookmark(platformId, prev)
+    const { error } = await api.toggleBookmark(platformId, nextBookmarked, nextTags)
     if (error) {
       // Revert
       set((state) => ({
         feedItems: state.feedItems.map((i) =>
-          i.platform_id === platformId ? { ...i, is_bookmarked: prev } : i
+          i.platform_id === platformId ? { ...i, is_bookmarked: prevBookmarked, tags: prevTags } : i
         ),
       }))
     }

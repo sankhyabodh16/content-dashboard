@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Rss, Users, List, Settings, type LucideIcon } from 'lucide-react'
+import { Rss, Users, BookMarked, Settings, type LucideIcon } from 'lucide-react'
 import { C, F } from '../../lib/tokens'
 
 interface NavItem {
@@ -14,7 +14,7 @@ const navSections: { header: string; items: NavItem[] }[] = [
     items: [
       { label: 'Creator List', path: '/creators', icon: Users },
       { label: 'Feed', path: '/', icon: Rss },
-      { label: 'List', path: '/list', icon: List },
+      { label: 'Library', path: '/library', icon: BookMarked },
     ],
   },
 ]
