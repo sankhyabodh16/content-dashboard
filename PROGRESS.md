@@ -1,6 +1,6 @@
 # 100 OPS Content Base — Build Progress
 
-Last updated: 2026-04-10 (session 4)
+Last updated: 2026-04-17 (Library revamp)
 
 ---
 
@@ -8,18 +8,41 @@ Last updated: 2026-04-10 (session 4)
 
 | Phase | Status |
 |-------|--------|
-| Frontend UI | ✅ Complete |
+| Frontend UI (post-revamp surface) | ✅ Complete |
 | Supabase backend integration | ✅ Live (real data only) |
 | LinkedIn scraping script | ✅ Complete |
 | Reddit scraping script | ✅ Complete |
 | YouTube scraping script | ✅ Complete |
-| GitHub Actions cron deployment | ✅ Cron removed — n8n handles scheduling |
-| Deploy to Vercel | ✅ Live |
-| Content Studio AI (Claude API) | ⬜ Not started |
-| Brand Voice | ⬜ Placeholder only |
-| Saved Drafts | ⬜ Placeholder only |
-| Performance Analytics | ⬜ Placeholder only |
-O
+| GitHub Actions deployment | ✅ `workflow_dispatch` only (cron removed, n8n handles scheduling) |
+| Trending extraction (Claude Haiku) | ✅ Live |
+| Deployed to Vercel | ✅ Live |
+| AI Creative Studio (rebuild) | ⬜ Not started — coming after Library is nailed down |
+| Library → Ideation skill | ⬜ Not started — reads `yet-to-ideate`, flips to `ideation-complete` |
+
+---
+
+## Current App Surface (post-revamp)
+
+Active sidebar sections:
+
+- **RESEARCH**
+  - Creator List (`/creators`)
+  - Feed (`/`)
+  - Library (`/library`)
+
+Archive (`/archive`) still exists as a route but is accessed via a button on the Feed top bar — not a sidebar entry.
+
+**Removed entirely** in the 2026-04-16 revamp:
+- AI CREATION sidebar section (Ideation, Content Studio, Brand Voice, Saved Drafts)
+- ANALYTICS sidebar section (Performance)
+- `ideation_items` / `content_drafts` store state and API functions
+- `IdeationItem` and `ContentDraft` types
+- `scraping scripts/ideation_extraction.js` + `.github/workflows/extract-ideation.yml`
+- `.claude/skills/content-repurpose/`
+- `src/data/mockData.ts`, `src/components/bookmarks/`, `src/components/ideation/`, `src/components/content-studio/`, `src/components/placeholders/`
+
+DB tables `ideation_items` and `content_drafts` still exist in Supabase but have no reader. They'll be repurposed or dropped when AI Creative Studio is designed.
+
 ---
 
 ## ✅ Completed
@@ -27,11 +50,11 @@ O
 ### Infrastructure
 - [x] Vite + React 18 + TypeScript project scaffolded
 - [x] Tailwind CSS v3 configured
-- [x] React Router v6 with all routes wired
+- [x] React Router v6 with nested routes under MainLayout
 - [x] Google Fonts loaded (Exo 2, IBM Plex Sans, JetBrains Mono)
 - [x] Zustand store — async actions, optimistic updates, Supabase sync
-- [x] Design token system (`src/lib/tokens.ts`) — single source of truth for colors, fonts, radii
-- [x] TypeScript types (`src/types/index.ts`) — `FeedItem`, `Creator`, `TrendingTopic`, `IdeationItem`, `ContentDraft`
+- [x] Design token system (`src/lib/tokens.ts`) — C (colors), F (fonts), R (radii), PLATFORM_COLORS
+- [x] TypeScript types (`src/types/index.ts`) — `FeedItem`, `Creator`, `TrendingTopic`
 - [x] Error Boundary wrapping the full app
 - [x] Custom scrollbar styling
 - [x] `src/vite-env.d.ts` — Vite env type reference
@@ -39,140 +62,127 @@ O
 ### Supabase Integration
 - [x] `.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
 - [x] `src/lib/supabase.ts` — client init + `isSupabaseConfigured` flag
-- [x] `src/lib/api.ts` — `fetchFeedItems`, `fetchBookmarks`, `fetchArchived`, `toggleBookmark`, `hidePost`, `restorePost`, `fetchCreators`, `addCreator`, `fetchTrending`, `fetchIdeationItems`, `saveDraft`, `fetchDrafts`
-- [x] `initialize()` async action in store — fetches all 4 datasets in parallel on app mount
-- [x] **Mock data removed** — app runs on real Supabase data only; falls back to empty arrays (not dummy data) if credentials are missing
+- [x] `src/lib/api.ts` — `fetchFeedItems`, `fetchBookmarks`, `fetchArchived`, `toggleBookmark` (now writes `tags` alongside `is_bookmarked`), `hidePost`, `restorePost`, `deletePost`, `deleteAllArchived`, `fetchCreators`, `addCreator`, `deleteCreator`, `updateCreator`, `fetchTrending`
+- [x] `initialize()` async action in store — fetches feed items, creators, trending in parallel on app mount
 - [x] All mutations async with optimistic update + silent revert on Supabase error
 - [x] `isLoading` state wired to `FeedCardSkeleton` in FeedPage
 - [x] `MainLayout.tsx` calls `initialize()` on mount (runs once, cached in store)
-- [x] 5 tables in Supabase: `creators`, `feed_items`, `trending_topics`, `ideation_items`, `content_drafts`
-- [x] RLS policies — anon read-all; anon write on `feed_items`, `creators`, `ideation_items`, `content_drafts`
+- [x] 5 tables in Supabase: `creators`, `feed_items`, `trending_topics`, `ideation_items` (orphaned), `content_drafts` (orphaned)
+- [x] RLS policies — anon read/write on `feed_items`, `creators`; DELETE policies on both
 
 ### Scraping
-- [x] **LinkedIn scraping script** (`scraping scripts/linkedin_scraping.js`) — replaced n8n workflow
+- [x] **LinkedIn scraping script** (`scraping scripts/linkedin_scraping.js`)
   - Fetches LinkedIn creators from Supabase
   - Calls Apify (actor `Wpp1BZ6yGWjySadk3`) for posts per creator
   - Filters out activity/reshare posts
   - Downloads images (image posts + document carousel cover pages) and videos from LinkedIn CDN
-  - Re-uploads to Supabase Storage `post-media` bucket with `x-upsert: true`
+  - Re-uploads to Supabase Storage `post-media` bucket
   - Upserts posts to `feed_items` with permanent Supabase Storage URLs
-- [x] **Supabase Storage** — `post-media` public bucket created
-- [x] `n8n workspaces/` renamed to `scraping scripts/`
 - [x] **Reddit scraping script** (`scraping scripts/reddit_scraping.js`)
   - Fetches Reddit creators (subreddits) from Supabase
-  - Calls Apify (actor `TwqHBuZZPHJxiQrTU`) for hot posts per subreddit (daily, 20 posts)
+  - Calls Apify (actor `TwqHBuZZPHJxiQrTU`) — 10 posts per subreddit, sort `top` (daily)
   - Extracts images from media_assets → preview images → i.redd.it URL fallback chain
   - Extracts videos from `media.reddit_video.fallback_url`
-  - Uploads images and videos to Supabase Storage `post-media/reddit/<id>/` with `x-upsert: true`
-  - Upserts posts to `feed_items` with `title`, `body`, `subreddit`, and Supabase Storage URLs
-  - Updates creator `last_scraped` and `posts_scraped` count after each subreddit
+  - Uploads images and videos to Supabase Storage `post-media/reddit/<id>/`
+  - Upserts posts with `title`, `body`, `subreddit`, Supabase Storage URLs
+  - Updates creator `followers` from `subreddit_subscribers` + `last_scraped`
 - [x] **YouTube scraping script** (`scraping scripts/youtube_scraping.js`)
   - Fetches YouTube creators from Supabase
-  - Normalizes channel URL (strips trailing slash, /videos, /shorts, etc.)
+  - Normalizes channel URL
   - Calls Apify channel actor (`REpzi5gxGt0DREvoi`) for last 3 videos per channel
   - Skips videos over 40 minutes
-  - Downloads thumbnails and uploads to Supabase Storage `post-media/youtube/<id>/thumbnail.jpg`
-  - Calls Apify transcript actor (`1s7eXiaukVuOr4Ueg`) per video — saves full transcript to `feed_items.transcript`
-  - Upserts posts to `feed_items` with `title`, `thumbnail_url`, `transcript`, `likes`, `views_count`, `comments_count`
-  - Updates creator `followers` (subscriber count), `last_scraped`, and `posts_scraped`
-- [ ] GitHub Actions cron workflow (every 6h, free tier)
+  - Downloads thumbnails to Supabase Storage
+  - Calls Apify transcript actor (`1s7eXiaukVuOr4Ueg`) — saves full transcript to `feed_items.transcript`
+  - Upserts posts with `title`, `thumbnail_url`, `transcript`, `likes`, `views_count`, `comments_count`
+  - Updates creator `followers` (subscriber count), `last_scraped`
+- [x] **Trending extraction** (`trending_extraction.js`) — Claude Haiku reads last 24h feed items, extracts 8–12 trending topics, replaces `trending_topics` table each run
 
-### Hosting plan
-- React app → **Vercel** (free, auto-deploy on push)
-- Scraping cron → **GitHub Actions** (free, 2000 min/month)
+### Hosting / Deployment
+- React app → **Vercel** (free, auto-deploy on push to `main`)
+- Scraping / trending → **GitHub Actions** `workflow_dispatch` (n8n triggers via GitHub dispatch API)
 - DB + Storage → **Supabase** free tier
+- GitHub Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `APIFY_TOKEN`, `ANTHROPIC_API_KEY`
+- Scrape Now from frontend: `VITE_GITHUB_TOKEN` + `VITE_GITHUB_REPO` env vars; dispatch API + polling progress bar
+- `vercel.json` catch-all rewrite → fixes SPA 404 on hard refresh
 
-### Schema (current — differs from original spec)
-- `feed_items.platform_id` TEXT PRIMARY KEY (not UUID) — supports n8n upsert dedup
-- `feed_items`: `likes`, `comments_count`, `shares_count`, `views_count` (not single `engagement`)
-- `feed_items`: `image_urls TEXT[]`, `video_urls TEXT[]`, `thumbnail_url` (not `image_url`)
-- `feed_items`: `post_url` for external link
-- `ideation_items.source_item_ids TEXT[]` — references `platform_id` values
-- `content_drafts` table — links to `ideation_items`, stores generated content
+### Schema (current)
+- `feed_items.platform_id` TEXT PRIMARY KEY (supports upsert dedup)
+- `feed_items`: `likes`, `comments_count`, `shares_count`, `views_count` (per-metric, not single `engagement`)
+- `feed_items`: `image_urls TEXT[]`, `video_urls TEXT[]`, `thumbnail_url`
+- `feed_items`: `post_url`, `title`, `body`, `subreddit`, `transcript`
+- `feed_items`: `is_hidden BOOL` (archive), `is_bookmarked BOOL` (library)
+- `feed_items.tags TEXT[]` — **repurposed 2026-04-17** for Library state: `'yet-to-ideate'` / `'ideation-complete'`
 
-### Layout
-- [x] Fixed left sidebar (240px) with logo, nav sections, user profile
+### Sidebar / Layout
+- [x] Fixed left sidebar (240px) — logo, single RESEARCH section, user profile footer
 - [x] Active nav state with red left-border accent
-- [x] Sidebar nav order: Creator List → Feed → List → Archive (RESEARCH), Ideation → Content Studio → Brand Voice → Saved Drafts (AI CREATION)
+- [x] Sidebar order (post-revamp): Creator List → Feed → Library
 
 ### Feed Page (`/`)
-- [x] **3-column layout** — Platform sidebar (left, 240px) | Feed center (flex) | Trending sidebar (right, 276px)
-- [x] **Platform filter** — left sidebar box with multiselect pill buttons; unchecking all shows everything
-- [x] **Trending sidebar** — static box, no Today/This Week tabs; matches Platform sidebar style
+- [x] **3-column layout** — Platform sidebar (left, 240px) | Feed center (max-width 640px) | Trending sidebar (right, 276px)
+- [x] **Platform filter** — left sidebar multiselect pills; unchecking all shows everything
+- [x] **Trending sidebar** — static box
 - [x] Feed cards with full design spec
-- [x] Smooth expand/collapse on card body (max-height CSS transition)
-- [x] **"Add to List" button** — right side of action row, red when active
-- [x] Dismiss card (X) → sends to Archive (sets `is_hidden = true` in Supabase)
-- [x] Clear Feed button with confirm state (listed items preserved)
-- [x] Feed centered at max-width 640px
-- [x] Skeleton loading cards wired to `isLoading` state
+- [x] `ImageCarousel` — left/right nav + dot indicators for multi-image posts
+- [x] Inline `<video>` element for video posts (Supabase Storage URLs)
+- [x] Body text clamped to 2 lines with smooth expand/collapse
+- [x] `PostBody` preserves paragraph breaks
+- [x] Platform-specific engagement row (LinkedIn: 👍💬🔁 · YouTube: 👁👍💬 · Reddit: ⬆💬)
+- [x] **"Save to Library" button** — right side of action row, red when active, uses Bookmark icons (renamed from "Add to List" 2026-04-17)
+- [x] Dismiss card (X) → archive (sets `is_hidden = true`)
+- [x] **Archive button** — top-right next to Clear Feed, navigates to `/archive` (replaces old sidebar tab)
+- [x] Clear Feed button with two-click confirm
+- [x] Skeleton loading cards wired to `isLoading`
+
+### Library Page (`/library`) — new 2026-04-17
+- [x] Renamed from "List" — now called Library (sidebar label, page header, FeedCard button text)
+- [x] **Kanban layout** — two columns side by side:
+  - *Yet To Ideate* (orange accent, Clock icon)
+  - *Ideation Complete* (green accent, CheckCircle2 icon)
+- [x] **Grouping rule (tolerant):** items tagged `ideation-complete` → Complete column; everything else → Yet To Ideate. No DB backfill needed.
+- [x] **Collapsible columns** — chevron in header shrinks a column to a 56px vertical rail (icon + count pill + rotated title); the open column grows to fill freed space
+- [x] **Compact `LibraryCard`** — platform badge, author, time, 3-line snippet (title or body)
+- [x] **`FeedItemModal`** — clicking a card opens the full `FeedCard` in a centered modal (Escape / backdrop click to close); preserves all media, body, actions
+- [x] Header subtitle: `{total} saved · {pending} yet to ideate · {complete} complete`
+- [x] Empty state for zero bookmarks
 
 ### Archive Page (`/archive`)
 - [x] List view — platform, title, author, time, restore button
-- [x] Restore individual posts back to feed (sets `is_hidden = false` in Supabase)
-- [x] Empty state when archive is empty
+- [x] Restore individual posts back to feed (`is_hidden = false`)
+- [x] **Clear Archive** — two-click confirm, permanently deletes all archived rows (`deleteAllArchived`)
+- [x] Empty state
+- [x] Reached only via Feed top-bar button (no sidebar entry)
 
 ### Creator List Page (`/creators`)
-- [x] Stats bar (total creators, posts scraped, platforms count)
-- [x] **Platform-grouped layout** — each platform in its own section with gradient header
+- [x] **Post counts sourced from `feed_items` grouped by `creator_id`** (not stale `creator.posts_scraped` column) — updated 2026-04-16
+- [x] Stats bar (total creators, total posts from feed_items, platforms count)
+- [x] **Platform-grouped layout** — each platform in its own section with gradient header (`linear-gradient(135deg, ${color}18 0%, ${color}08 50%, transparent 100%)`)
 - [x] Per-platform metric columns:
   - LinkedIn: Connections + Followers
   - YouTube: Subscribers
   - Twitter/X: Followers
   - Instagram: Followers + Following
   - Reddit: Members
-- [x] Dynamic grid columns (5-col when platform has 2 metrics, 4-col otherwise)
-- [x] Platform-colored avatars, vibrant section headers with platform accent colors
-- [x] Rows are clickable — opens Creator Detail modal
-- [x] Empty state when no creators exist
+- [x] Dynamic grid columns (5-col with 2 metrics, 4-col otherwise)
+- [x] Platform-colored avatars + vibrant section headers
+- [x] Rows clickable → Creator Detail modal
+- [x] Empty state
 
 ### Creator Detail Modal
 - [x] Platform-colored gradient header with avatar, name, handle, platform badge
 - [x] Metric blocks (platform-specific) + Posts Scraped
-- [x] Meta section: Last Scraped, Added (formatted date), Profile URL (link)
-- [x] **Edit mode** — pencil icon in header, inline form for Name + Profile URL; handle re-derived from URL on save
-- [x] **Remove** — two-click confirm (turns red, shows "Confirm?", auto-resets after 4s)
-- [x] Scrape Now + View Profile buttons (UI only; Scrape Now needs n8n wiring)
+- [x] Meta: Last Scraped, Added, Profile URL
+- [x] **Edit mode** — pencil icon, inline form (Name + Profile URL); handle re-derived from URL
+- [x] **Remove** — two-click confirm (persists to Supabase via `deleteCreator`)
+- [x] **Scrape Now** — fires GitHub Actions `workflow_dispatch` for that platform; progress bar polls every 10s (Dispatching → Queued → Running → Done/Failed)
 - [x] Escape key closes (or cancels edit); backdrop click closes
 
 ### Add Creator Modal
 - [x] 3 fields: Creator Name, Platform, URL — all required
 - [x] Custom platform dropdown (no native `<select>`)
-- [x] Handle auto-derived from URL for all platforms:
-  - LinkedIn / Twitter / Instagram / YouTube: last path segment → `@handle`
-  - Reddit: last path segment after `r/` → `r/SubredditName` (case preserved, no extra field)
-- [x] Inline field-level validation with error messages
-- [x] Escape key + backdrop click to close; auto-focuses name field on open
-
-### List Page (`/list`)
-- [x] Filtered feed view (only `is_bookmarked = true`, non-hidden items)
-- [x] Content centered at 680px matching feed layout
-- [x] Analyzed / Pending status badge
-- [x] Empty state
-
-### Ideation Page (`/ideation`)
-- [x] 3-column fixed-height card grid (no horizontal scroll)
-- [x] Each card: topic title, outline preview (3-line clamp), platform badge, source item count
-- [x] **Click anywhere on card** — opens full-content modal
-- [x] **Notion-style modal** — centered overlay, 900px wide, full viewport height, editable title + outline, auto-saves 800ms after keystroke, Copy MD button, Write This → button
-- [x] **Delete** — trash icon on card (hover-only) and in modal toolbar; permanently deletes from Supabase
-- [x] **Bulk delete** — checkbox (grey, custom) appears on card hover; bulk bar in top-right shows selected count, Deselect All, Delete N; fires single `DELETE ... IN (ids)` to Supabase
-- [x] **DELETE RLS policy** added on `ideation_items` for anon role
-- [x] `updateIdeationItem`, `deleteIdeationItem`, `deleteIdeationItems` — API + store actions with optimistic revert
-- [x] **"Write This →"** — passes edited topic/outline (not stale original) to Content Studio
-- [x] Empty state
-- [x] `/content-repurpose` skill — fetches 3 unprocessed bookmarked items, generates LinkedIn ideas via AI Bridge methodology, saves to `ideation_items`
-
-### Content Studio Page (`/content-studio`)
-- [x] Two-column layout: left panel (inputs + preview) / right panel (generated output)
-- [x] Topic input, Outline textarea, Platform + Brand Voice custom dropdowns
-- [x] Generate button with validation (mock 1.2s delay — AI not yet wired)
-- [x] **Ideation banner** — pre-fills inputs when opened from Ideation page, dismissible
-- [x] Preview: LinkedIn and X/Twitter mockups
-- [x] Save Draft + Re Generate buttons (`saveDraft` wired to Supabase `content_drafts`)
-
-### Placeholder Pages
-- [x] Brand Voice, Saved Drafts, Performance — each with correct title, subtitle, coming soon empty state
+- [x] Handle auto-derived from URL for all platforms (LinkedIn/Twitter/Instagram/YouTube → `@handle`; Reddit → `r/SubredditName`)
+- [x] Inline field-level validation
+- [x] Escape + backdrop click to close; auto-focuses name field
 
 ### UI Components
 - [x] `PlatformBadge` — all 5 platforms, sm/md sizes
@@ -182,85 +192,57 @@ O
 
 ---
 
+## 2026-04 Revamp Timeline
+
+### 2026-04-16 — Strip AI surface
+- Removed AI CREATION sidebar section and all ideation/content-studio components + routes
+- Removed ANALYTICS / Performance section
+- Removed `ideation_items` / `content_drafts` state, API, types
+- Deleted `scraping scripts/ideation_extraction.js`, `.github/workflows/extract-ideation.yml`, `.claude/skills/content-repurpose/`, `src/data/mockData.ts`, `src/components/bookmarks/`
+- Moved Archive from sidebar tab to a button on Feed top bar (route preserved)
+- Creator List post counts re-sourced from `feed_items` aggregation
+
+### 2026-04-17 — Library (formerly List)
+- Renamed List → Library (path `/library`, `BookMarked` sidebar icon)
+- FeedCard: `Save to Library` / `Remove from Library` with Bookmark icons
+- Repurposed `feed_items.tags TEXT[]` with sentinel values `'yet-to-ideate'` / `'ideation-complete'`
+- Store `toggleList` → `toggleLibrary`: appends `'yet-to-ideate'` on save; strips both state tags on remove
+- `toggleBookmark` API signature now takes `(platformId, nextBookmarked, nextTags)`
+- New `LibraryPage` — 2-column kanban, collapsible, with compact `LibraryCard` + `FeedItemModal`
+- Folder `src/components/list/` deleted; replaced by `src/components/library/`
+
+---
+
 ## ⬜ Not Started
 
-### Content Studio — AI wiring
-- [ ] Wire Claude API for real content generation (currently mock placeholder)
-- [ ] Re Generate button — re-calls API with same inputs
-- [ ] Ideation item status update (`idea` → `writing` → `drafted`) on Save Draft
+### AI Creative Studio (rebuild)
+- [ ] Design scope — how Library items flow through ideation and into drafting
+- [ ] New schema for generated content (replaces/re-uses orphaned `ideation_items` / `content_drafts`?)
+- [ ] UI pages
+- [ ] Claude API wiring
 
-### Creator mutations — backend
-- [x] **Scrape Now** — triggers GitHub Actions `workflow_dispatch` for the creator's platform (2026-03-30)
-- [x] `updateCreator` — persists name/URL edits to Supabase with optimistic revert
+### Library → Ideation skill
+- [ ] Claude Code skill that fetches items with `'yet-to-ideate'` tag
+- [ ] Performs ideation (grouping / outline / etc.)
+- [ ] Updates tag to `'ideation-complete'` on success
+- [ ] Triggered manually / scheduled
 
 ### UX gaps
-- [x] **Clear Archive button** — two-click confirm (turns red → "Confirm delete?"), permanently deletes all archived posts from Supabase + clears local state; hidden when archive is empty
 - [ ] Error toast on Supabase mutation failure (currently silent revert only)
-- [x] **"Open original"** — open `post_url` in new tab from feed card (2026-03-25)
-
-### Scraping fixes (2026-03-22)
-- [x] `posts_scraped` now uses real DB count (idempotent — re-runs don't inflate)
-- [x] LinkedIn `connection_count` column now read directly in UI (separate from `followers`)
-- [x] Reddit `subreddit_subscribers` → `creators.followers` on each scrape run
-- [x] **Reddit scrape config** — reduced from 20 → 10 posts per subreddit; sort changed from `hot` → `top` (daily timeframe)
-- [x] YouTube subscriber count fixed — reads from `aboutChannelInfo.numberOfSubscribers`
-- [x] Creator page `getMetric` — shows `—` for zero/missing values instead of `0`
-- [x] **GitHub Actions workflows** — 5 workflow files (`scrape-reddit`, `scrape-linkedin`, `scrape-youtube`, `extract-trending`, `extract-ideation`), all `workflow_dispatch` triggered
-- [x] **`trending_extraction.js`** — Claude Haiku reads last 24h feed items, extracts 8-12 trending topics (1-2 words), replaces `trending_topics` table each run
-- [x] **`ideation_extraction.js`** — Claude Sonnet reads bookmarked items, groups by theme, generates topic + outline per cluster, skips already-used source IDs, saves to `ideation_items`
-- [x] `@anthropic-ai/sdk` added as dependency
-
-### FeedCard improvements (2026-03-22)
-- [x] `ImageCarousel` — left/right nav + dot indicators for multi-image posts
-- [x] Video renders inline via `<video>` element (Supabase Storage URLs, no CORS)
-- [x] Body text truncated to 2 lines (`-webkit-line-clamp: 2`) with expand/collapse
-- [x] `PostBody` component renders paragraphs preserving newlines from LinkedIn posts
-
-### Bug fixes (2026-03-25)
-- [x] `removeCreator` — now calls `deleteCreator` in Supabase (was local state only); added DELETE RLS policy on `creators` table
-- [x] **"Open original"** — `post_url` opens in new tab from feed card action row
-
-### Production deployment (2026-03-25)
-- [x] **Step 1** — git init, .gitignore, pushed to GitHub (`sankhyabodh16/content-dashboard`)
-- [x] **Step 2** — GitHub Actions secrets added: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `APIFY_TOKEN`
-- [x] **Step 3** — Cron schedules added: scraping every 6h; trending 30min after; ideation daily 1am UTC; n8n triggers via GitHub dispatch API
-- [x] **Step 4** — Deployed to Vercel ✅ live
-- [x] **Step 5** — Scrape Now wired: GitHub dispatch API from frontend, `VITE_GITHUB_TOKEN` + `VITE_GITHUB_REPO` added to `.env` and Vercel env vars ✅ live (2026-03-30)
-- [x] **Step 6** — `updateCreator` persists to Supabase (async with optimistic revert)
-- [x] **Vercel SPA rewrite** — `vercel.json` added with catch-all rewrite to `index.html`; fixes 404 on hard refresh (Cmd+Shift+R)
-
-### Known bugs — audit (2026-03-25)
-
-#### 🔴 Critical
-- [x] `updateCreator` — now persists to Supabase (2026-03-30)
-- [x] `relevance` + `tags` — removed from FeedCard entirely; engagement row now platform-specific (2026-03-30)
-- [ ] YouTube `transcript` field — saved by scraper but not in `FeedItem` type; data is lost silently
-- [x] `is_hidden` / `is_bookmarked` — scrapers no longer overwrite these on re-scrape; archived posts stay archived forever (2026-03-30)
-- [x] Scrape Now button — wired to GitHub Actions `workflow_dispatch` API (2026-03-30)
-
-#### 🟡 Medium
-- [ ] Reddit members metric — saved to `followers` column but UI reads `metrics.members`; always shows `—`
-- [ ] `followers` type mismatch — type says `string`, LinkedIn + Reddit scripts save a `number`
-- [ ] Metric display breaks for "1.2M" format — `Number("1.2M")` returns `NaN`
-- [ ] `clearFeed` race condition — `forEach` fires all `hidePost()` calls without `Promise.all`; failures are silent
-- [ ] No pagination on `fetchFeedItems` — fetches all rows; performance cliff at scale
-- [ ] LinkedIn `handle` on feed items — saves post author's profile ID, not the creator's handle
-
-### Fixes & improvements (2026-03-30)
-- [x] **GitHub Actions cron removed** — all 5 workflows now `workflow_dispatch` only; n8n handles scheduling
-- [x] **Scrape Now progress bar** — polls GitHub Actions API every 10s after dispatch; shows Dispatching → Queued → Running → Done/Failed with elapsed timer
-- [x] **Supabase 404 errors fixed** — removed `.single()` from `toggleBookmark`, `hidePost`, `restorePost` in api.ts
-- [x] **Archive DELETE RLS** — added DELETE policy on `feed_items` for anon role; Clear Archive now truly deletes from Supabase
-- [x] **Scrapers no longer overwrite `is_hidden` / `is_bookmarked`** — archived posts stay archived permanently on re-scrape
-- [x] **Feed card engagement row** — platform-specific stats only (LinkedIn: 👍💬🔁 · YouTube: 👁👍💬 · Reddit: ⬆💬); removed broken `relevance` % and `tags`
-
-### Future Features
-- [ ] Brand Voice configuration page
-- [ ] Saved Drafts page (reads from `content_drafts`)
-- [ ] Performance Analytics
-- [ ] Trending topics clickable (filter feed by topic)
+- [ ] Pagination on `fetchFeedItems` (currently fetches all rows)
 - [ ] Real-time Supabase subscription for new scraped posts
-- [ ] Settings page
+
+---
+
+## 🐛 Known bugs still open
+
+- [ ] YouTube `transcript` field — saved by scraper but missing from `FeedItem` type; data silently dropped in UI
+- [ ] Reddit members metric — UI reads `metrics.members` but data lives in `followers` column → always shows `—`
+- [ ] `followers` type mismatch — type says `string`, LinkedIn/Reddit scripts save a `number`
+- [ ] Metric display breaks for "1.2M" format — `Number("1.2M")` returns `NaN`
+- [ ] `clearFeed` previously had a race; currently uses `Promise.all` on hide calls — verify no silent failures at scale
+- [ ] LinkedIn `handle` on feed items — saves post author's profile ID, not the creator's handle
+- [ ] No pagination on `fetchFeedItems`
 
 ---
 
@@ -268,50 +250,70 @@ O
 
 ```
 src/
-├── main.tsx                        ✅ With ErrorBoundary
-├── App.tsx                         ✅ All routes: /, /creators, /list, /archive, /ideation, /content-studio, /brand-voice, /saved-drafts, /analytics
-├── index.css                       ✅ Scrollbar, skeleton animation
-├── vite-env.d.ts                   ✅ Vite env types
+├── main.tsx                        ErrorBoundary wrapper
+├── App.tsx                         Routes: /, /creators, /library, /archive
+├── index.css                       Scrollbar, skeleton animation
+├── vite-env.d.ts
 ├── lib/
-│   ├── supabase.ts                 ✅ Client + isSupabaseConfigured
-│   ├── api.ts                      ✅ All Supabase query functions
-│   ├── tokens.ts                   ✅ Design tokens (colors, fonts, radii)
-│   └── utils.ts                    ✅ timeAgo(), formatDate()
-├── data/
-│   └── mockData.ts                 ✅ Empty arrays only (mock data removed)
+│   ├── supabase.ts                 Client + isSupabaseConfigured
+│   ├── api.ts                      fetchFeedItems, toggleBookmark (with tags), hidePost, restorePost, deleteAllArchived, fetchCreators, addCreator, deleteCreator, updateCreator, fetchTrending
+│   ├── tokens.ts                   C, F, R, PLATFORM_COLORS
+│   └── utils.ts                    timeAgo(), formatDate()
 ├── store/
-│   └── useStore.ts                 ✅ initialize(), async mutations, isLoading, updateCreator
+│   └── useStore.ts                 initialize(), toggleLibrary, hidePost, restorePost, clearFeed, clearArchive, addCreator, removeCreator, updateCreator
 ├── types/
-│   └── index.ts                    ✅ FeedItem, Creator (+ metrics?), TrendingTopic, IdeationItem, ContentDraft
+│   └── index.ts                    FeedItem, Creator, TrendingTopic, Platform
 └── components/
     ├── layout/
-    │   ├── Sidebar.tsx             ✅
-    │   └── MainLayout.tsx          ✅ Calls initialize() on mount
+    │   ├── Sidebar.tsx             RESEARCH section only
+    │   └── MainLayout.tsx          Calls initialize() on mount
     ├── feed/
-    │   ├── FeedPage.tsx            ✅ 3-column layout
-    │   ├── FeedCard.tsx            ✅
-    │   ├── FeedCardSkeleton.tsx    ✅
-    │   ├── PlatformFilter.tsx      ✅ (legacy, unused)
-    │   ├── PlatformSidebar.tsx     ✅ Left sidebar multiselect
-    │   └── TrendingSidebar.tsx     ✅ Static box, no tab toggle
+    │   ├── FeedPage.tsx            3-column layout, Archive button in top bar
+    │   ├── FeedCard.tsx            Save to Library button
+    │   ├── FeedCardSkeleton.tsx
+    │   ├── PlatformSidebar.tsx
+    │   └── TrendingSidebar.tsx
     ├── archive/
-    │   └── ArchivePage.tsx         ✅
-    ├── list/
-    │   └── ListPage.tsx            ✅
-    ├── ideation/
-    │   ├── IdeationPage.tsx        ✅ 3-col grid, bulk select/delete
-    │   ├── IdeationCard.tsx        ✅ Click-to-open, checkbox, trash
-    │   └── IdeationModal.tsx       ✅ Editable, auto-save, Copy MD, delete
+    │   └── ArchivePage.tsx         Reached via Feed top-bar button
+    ├── library/
+    │   ├── LibraryPage.tsx         2-column collapsible kanban
+    │   ├── LibraryCard.tsx         Compact card (click → modal)
+    │   └── FeedItemModal.tsx       Full FeedCard in overlay
     ├── creators/
-    │   ├── CreatorListPage.tsx     ✅ Platform-grouped, metric columns, clickable rows
-    │   ├── CreatorDetailModal.tsx  ✅ Metrics, edit, remove confirm
-    │   └── AddCreatorModal.tsx     ✅ 3 fields, URL-derived handle for all platforms
-    ├── content-studio/
-    │   └── ContentStudioPage.tsx   ✅ saveDraft → Supabase
-    ├── placeholders/
-    │   └── ComingSoonPage.tsx      ✅
+    │   ├── CreatorListPage.tsx     Platform-grouped, post counts from feed_items
+    │   ├── CreatorDetailModal.tsx  Scrape Now + progress, edit, remove
+    │   └── AddCreatorModal.tsx
     └── ui/
-        ├── PlatformBadge.tsx       ✅
-        ├── EmptyState.tsx          ✅
-        └── ErrorBoundary.tsx       ✅
+        ├── PlatformBadge.tsx
+        ├── EmptyState.tsx
+        └── ErrorBoundary.tsx
 ```
+
+---
+
+## Historical bug fixes (kept for reference)
+
+### 2026-03-22 — Scraping fixes
+- [x] `posts_scraped` uses real DB count (idempotent)
+- [x] LinkedIn `connection_count` read directly (separate from `followers`)
+- [x] Reddit `subreddit_subscribers` → `creators.followers`
+- [x] Reddit config: 20 → 10 posts, sort `hot` → `top` (daily)
+- [x] YouTube subscribers fixed (`aboutChannelInfo.numberOfSubscribers`)
+- [x] Creator page `getMetric` shows `—` instead of `0`
+
+### 2026-03-25 — Production deployment + fixes
+- [x] git init, .gitignore, pushed to GitHub (`sankhyabodh16/content-dashboard`)
+- [x] GitHub Actions secrets wired
+- [x] Deployed to Vercel
+- [x] `removeCreator` persists to Supabase (DELETE RLS policy added)
+- [x] "Open original" opens `post_url` in new tab
+- [x] Vercel SPA rewrite fixes 404 on hard refresh
+
+### 2026-03-30 — Post-deploy polish
+- [x] GitHub Actions cron removed — `workflow_dispatch` only; n8n handles scheduling
+- [x] Scrape Now wired: GitHub dispatch API + polling progress bar
+- [x] `updateCreator` persists with optimistic revert
+- [x] Supabase 404s fixed (removed `.single()` from toggle/hide/restore)
+- [x] Archive DELETE RLS added — Clear Archive truly deletes
+- [x] Scrapers no longer overwrite `is_hidden` / `is_bookmarked` on re-scrape
+- [x] Feed card engagement row platform-specific
