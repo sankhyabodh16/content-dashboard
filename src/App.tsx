@@ -4,6 +4,7 @@ import FeedPage from './components/feed/FeedPage'
 import CreatorListPage from './components/creators/CreatorListPage'
 import LibraryPage from './components/library/LibraryPage'
 import ContentIdeasPage from './components/studio/ContentIdeasPage'
+import ContentIdeaPage from './components/studio/ContentIdeaPage'
 import ArchivePage from './components/archive/ArchivePage'
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="creators" element={<CreatorListPage />} />
           <Route path="library" element={<LibraryPage />} />
           <Route path="ideas" element={<ContentIdeasPage />} />
+          <Route path="ideas/:id" element={<ContentIdeaPage />} />
           <Route path="archive" element={<ArchivePage />} />
         </Route>
       </Routes>
