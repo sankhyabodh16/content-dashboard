@@ -1,6 +1,6 @@
 # 100 OPS Content Base — Build Progress
 
-Last updated: 2026-04-17 (Library revamp)
+Last updated: 2026-04-18 (AI Creative Studio — Content Ideas)
 
 ---
 
@@ -16,8 +16,9 @@ Last updated: 2026-04-17 (Library revamp)
 | GitHub Actions deployment | ✅ `workflow_dispatch` only (cron removed, n8n handles scheduling) |
 | Trending extraction (Claude Haiku) | ✅ Live |
 | Deployed to Vercel | ✅ Live |
-| AI Creative Studio (rebuild) | ⬜ Not started — coming after Library is nailed down |
-| Library → Ideation skill | ⬜ Not started — reads `yet-to-ideate`, flips to `ideation-complete` |
+| AI Creative Studio — Content Ideas | ✅ Live (`/ideas`, `/ideas/:id`) |
+| Library → Ideation skill (manual) | ✅ Working — AI analyzes post text + images, inserts ideas via Supabase |
+| Library → Ideation skill (automated) | ⬜ Not started — Claude Code skill, auto-tags `ideation-complete` |
 
 ---
 
@@ -62,12 +63,12 @@ DB tables `ideation_items` and `content_drafts` still exist in Supabase but have
 ### Supabase Integration
 - [x] `.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
 - [x] `src/lib/supabase.ts` — client init + `isSupabaseConfigured` flag
-- [x] `src/lib/api.ts` — `fetchFeedItems`, `fetchBookmarks`, `fetchArchived`, `toggleBookmark` (now writes `tags` alongside `is_bookmarked`), `hidePost`, `restorePost`, `deletePost`, `deleteAllArchived`, `fetchCreators`, `addCreator`, `deleteCreator`, `updateCreator`, `fetchTrending`
-- [x] `initialize()` async action in store — fetches feed items, creators, trending in parallel on app mount
+- [x] `src/lib/api.ts` — `fetchFeedItems`, `fetchBookmarks`, `fetchArchived`, `toggleBookmark` (now writes `tags` alongside `is_bookmarked`), `hidePost`, `restorePost`, `deletePost`, `deleteAllArchived`, `fetchCreators`, `addCreator`, `deleteCreator`, `updateCreator`, `fetchTrending`, `fetchContentIdeas`, `createContentIdea`, `updateContentIdea`, `deleteContentIdea`
+- [x] `initialize()` async action in store — fetches feed items, creators, trending, content ideas in parallel on app mount
 - [x] All mutations async with optimistic update + silent revert on Supabase error
 - [x] `isLoading` state wired to `FeedCardSkeleton` in FeedPage
 - [x] `MainLayout.tsx` calls `initialize()` on mount (runs once, cached in store)
-- [x] 5 tables in Supabase: `creators`, `feed_items`, `trending_topics`, `ideation_items` (orphaned), `content_drafts` (orphaned)
+- [x] 6 tables in Supabase: `creators`, `feed_items`, `trending_topics`, `content_ideas`, `ideation_items` (orphaned), `content_drafts` (orphaned)
 - [x] RLS policies — anon read/write on `feed_items`, `creators`; DELETE policies on both
 
 ### Scraping
@@ -146,6 +147,26 @@ DB tables `ideation_items` and `content_drafts` still exist in Supabase but have
 - [x] Header subtitle: `{total} saved · {pending} yet to ideate · {complete} complete`
 - [x] Empty state for zero bookmarks
 
+### AI Creative Studio — Content Ideas (`/ideas`, `/ideas/:id`) — new 2026-04-18
+
+- [x] **Content Ideas list page** (`/ideas`) — sidebar nav entry under AI STUDIO, lists all ideas, New idea button, each row shows title (2-line wrap) + outline preview snippet + timestamp
+- [x] **Content Idea detail page** (`/ideas/:id`) — full-page route (not a side panel), centered layout (max-width 860px), back-arrow nav
+- [x] **Title field** — auto-sizing `<textarea>` (full wrap, no truncation), saves on blur
+- [x] **Outline field** — plain auto-sizing `<textarea>`, saves on blur
+- [x] **Source chip** — compact row: platform badge + author + post excerpt + external link to original post; linked via `source_platform_id → feed_items.platform_id`
+- [x] **Enrich with Perplexity** button (UI wired, integration pending)
+- [x] **Delete idea** — top bar button with confirm dialog, navigates back to list
+- [x] **`content_ideas` Supabase table** — `id UUID PK`, `title TEXT`, `outline TEXT`, `source_platform_id TEXT FK→feed_items`, `created_at`, `updated_at`
+- [x] **Store actions** — `contentIdeas[]`, `createIdea(source_platform_id)`, `updateIdea(id, patch)`, `deleteIdea(id)` — all optimistic with Supabase sync
+- [x] **Manual AI ideation pipeline** — Claude analyzes bookmarked post text + carousel images, generates ideas mapped to `content-pillars.md` templates (Pillar 1–4), inserts directly to `content_ideas` via Supabase REST
+
+#### Content Pillars document (`content-pillars.md`)
+- [x] 4 pillars defined with title blueprints, 3–6 reusable templates each, quality checklists
+  - Pillar 1: Tool Drops & Power Tips (FOMO / contrarian swap / news drop)
+  - Pillar 2: Automation Systems Builds / Demos (envy + effort gap flex)
+  - Pillar 3: AI Tool Reviews / Comparisons (earned verdict + finality)
+  - Pillar 4: AI Business / Strategy (volume proof + directional call + time anchor)
+
 ### Archive Page (`/archive`)
 - [x] List view — platform, title, author, time, restore button
 - [x] Restore individual posts back to feed (`is_hidden = false`)
@@ -202,6 +223,21 @@ DB tables `ideation_items` and `content_drafts` still exist in Supabase but have
 - Moved Archive from sidebar tab to a button on Feed top bar (route preserved)
 - Creator List post counts re-sourced from `feed_items` aggregation
 
+### 2026-04-18 — AI Creative Studio: Content Ideas + UI polish
+
+- Added `content_ideas` Supabase table and full CRUD (store + API)
+- Built `/ideas` list page and `/ideas/:id` full-page detail (replaced side panel approach)
+- Added `content-pillars.md` — 4-pillar framework with title blueprints and quality checklists
+- Manual AI ideation pipeline: fetch bookmarked posts → analyze text + images with Claude → generate pillar-mapped ideas → insert to `content_ideas` via Supabase REST
+- First ideation run: Nick Saraev LinkedIn post (carousel, 3 images) → 5 ideas across Pillars 1, 2, 4
+- UI readability pass across all pages:
+  - ContentIdeasPage: title wraps to 2 lines, outline preview snippet per row
+  - ContentIdeaPage: title uses auto-sizing textarea (no truncation), outline line-height/spacing improved
+  - FeedCard: body text → primary color, action row divider visible, stats text larger/brighter
+  - LibraryCard: snippet 13→14px, line-height bump
+  - Sidebar: active nav item font-weight 400→500
+  - Archive: title column primary color, row dividers visible
+
 ### 2026-04-17 — Library (formerly List)
 - Renamed List → Library (path `/library`, `BookMarked` sidebar icon)
 - FeedCard: `Save to Library` / `Remove from Library` with Bookmark icons
@@ -215,17 +251,17 @@ DB tables `ideation_items` and `content_drafts` still exist in Supabase but have
 
 ## ⬜ Not Started
 
-### AI Creative Studio (rebuild)
-- [ ] Design scope — how Library items flow through ideation and into drafting
-- [ ] New schema for generated content (replaces/re-uses orphaned `ideation_items` / `content_drafts`?)
-- [ ] UI pages
-- [ ] Claude API wiring
+### AI Creative Studio — next phases
+- [ ] **Enrich with Perplexity** — wire Perplexity API to pull research into idea outline
+- [ ] **Drafting flow** — expand idea into full platform draft (LinkedIn post, YouTube script, etc.) using Claude
+- [ ] **`content_drafts` table** — store per-platform drafts linked to a content idea (table exists, currently orphaned)
+- [ ] **Ideation-complete tagging** — when an idea is created from a Library item, flip that item's tag to `ideation-complete` automatically
 
-### Library → Ideation skill
-- [ ] Claude Code skill that fetches items with `'yet-to-ideate'` tag
-- [ ] Performs ideation (grouping / outline / etc.)
-- [ ] Updates tag to `'ideation-complete'` on success
-- [ ] Triggered manually / scheduled
+### Library → Ideation skill (automated)
+- [ ] Claude Code skill that fetches all items with `'yet-to-ideate'` tag
+- [ ] Analyzes each post (text + images) against content pillars
+- [ ] Creates `content_ideas` rows and flips tag to `'ideation-complete'`
+- [ ] Triggered manually from Library page or on a schedule
 
 ### UX gaps
 - [ ] Error toast on Supabase mutation failure (currently silent revert only)
@@ -251,7 +287,7 @@ DB tables `ideation_items` and `content_drafts` still exist in Supabase but have
 ```
 src/
 ├── main.tsx                        ErrorBoundary wrapper
-├── App.tsx                         Routes: /, /creators, /library, /archive
+├── App.tsx                         Routes: /, /creators, /library, /archive, /ideas, /ideas/:id
 ├── index.css                       Scrollbar, skeleton animation
 ├── vite-env.d.ts
 ├── lib/
@@ -260,9 +296,9 @@ src/
 │   ├── tokens.ts                   C, F, R, PLATFORM_COLORS
 │   └── utils.ts                    timeAgo(), formatDate()
 ├── store/
-│   └── useStore.ts                 initialize(), toggleLibrary, hidePost, restorePost, clearFeed, clearArchive, addCreator, removeCreator, updateCreator
+│   └── useStore.ts                 initialize(), toggleLibrary, hidePost, restorePost, clearFeed, clearArchive, addCreator, removeCreator, updateCreator, createIdea, updateIdea, deleteIdea
 ├── types/
-│   └── index.ts                    FeedItem, Creator, TrendingTopic, Platform
+│   └── index.ts                    FeedItem, Creator, TrendingTopic, ContentIdea, Platform
 └── components/
     ├── layout/
     │   ├── Sidebar.tsx             RESEARCH section only
@@ -283,6 +319,9 @@ src/
     │   ├── CreatorListPage.tsx     Platform-grouped, post counts from feed_items
     │   ├── CreatorDetailModal.tsx  Scrape Now + progress, edit, remove
     │   └── AddCreatorModal.tsx
+    ├── studio/
+    │   ├── ContentIdeasPage.tsx    List view — title (2-line wrap) + outline preview + timestamp
+    │   └── ContentIdeaPage.tsx     Full-page detail — auto-sizing title + plain textarea outline + source chip
     └── ui/
         ├── PlatformBadge.tsx
         ├── EmptyState.tsx
