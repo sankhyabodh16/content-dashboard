@@ -103,7 +103,7 @@ export default function ArchivePage() {
                 key={item.platform_id}
                 className="flex items-center gap-4 px-4 py-3 rounded-lg"
                 style={{
-                  borderBottom: `1px solid ${C.border.subtle}`,
+                  borderBottom: `1px solid ${C.border.default}`,
                   transition: 'background-color 0.15s ease',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = C.bg.surface)}
@@ -120,7 +120,7 @@ export default function ArchivePage() {
                   style={{
                     fontFamily: F.body,
                     fontSize: '14px',
-                    color: C.text.secondary,
+                    color: C.text.primary,
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
                     textOverflow: 'ellipsis',

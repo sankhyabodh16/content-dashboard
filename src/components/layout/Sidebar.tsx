@@ -94,7 +94,7 @@ export default function Sidebar() {
                   borderLeft: isActive ? `3px solid ${C.accent.red}` : '3px solid transparent',
                   fontFamily: F.body,
                   fontSize: '14px',
-                  fontWeight: 400,
+                  fontWeight: isActive ? 500 : 400,
                   textDecoration: 'none',
                 })}
                 onMouseEnter={(e) => {

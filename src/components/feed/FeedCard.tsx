@@ -13,7 +13,7 @@ interface FeedCardProps {
 function PostBody({ body, expanded }: { body: string; expanded: boolean }) {
   const paragraphs = body.split(/\n+/).filter((p) => p.trim().length > 0)
   return (
-    <div style={{ fontFamily: F.body, fontSize: '14px', color: C.text.secondary, lineHeight: 1.7 }}>
+    <div style={{ fontFamily: F.body, fontSize: '14px', color: C.text.primary, lineHeight: 1.75 }}>
       {paragraphs.map((para, i) => (
         <p key={i} style={{ marginBottom: i < paragraphs.length - 1 ? '10px' : 0 }}>
           {para}
@@ -270,7 +270,7 @@ export default function FeedCard({ item }: FeedCardProps) {
         return (
           <div className="flex items-center gap-4 mb-3">
             {stats.map((s) => (
-              <span key={s.label} style={{ fontFamily: F.mono, fontSize: '12px', color: C.text.muted }}>
+              <span key={s.label} style={{ fontFamily: F.mono, fontSize: '13px', color: C.text.secondary }}>
                 {s.icon} {s.value.toLocaleString()}
               </span>
             ))}
@@ -279,7 +279,7 @@ export default function FeedCard({ item }: FeedCardProps) {
       })()}
 
       {/* Action row */}
-      <div className="flex items-center gap-3 pt-3" style={{ borderTop: `1px solid ${C.border.subtle}` }}>
+      <div className="flex items-center gap-3 pt-3" style={{ borderTop: `1px solid ${C.border.default}` }}>
         {item.post_url ? (
           <a
             href={item.post_url}

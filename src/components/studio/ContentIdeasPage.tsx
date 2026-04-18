@@ -75,16 +75,18 @@ export default function ContentIdeasPage() {
               <button
                 key={idea.id}
                 onClick={() => navigate(`/ideas/${idea.id}`)}
-                className="flex items-center gap-3"
                 style={{
                   width: '100%',
                   textAlign: 'left',
-                  padding: '12px 14px',
+                  padding: '14px 16px',
                   borderRadius: R.input,
                   backgroundColor: 'transparent',
                   border: `1px solid ${C.border.default}`,
                   cursor: 'pointer',
                   transition: 'background-color 0.15s ease, border-color 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'
@@ -104,6 +106,7 @@ export default function ContentIdeasPage() {
                     backgroundColor: 'rgba(232,50,50,0.12)',
                     border: `1px solid rgba(232,50,50,0.25)`,
                     color: C.accent.red,
+                    marginTop: '1px',
                   }}
                 >
                   <Sparkles size={14} strokeWidth={2} />
@@ -115,13 +118,30 @@ export default function ContentIdeasPage() {
                       fontSize: '14px',
                       fontWeight: 500,
                       color: idea.title ? C.text.primary : C.text.muted,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
+                      lineHeight: 1.45,
                     }}
                   >
                     {idea.title || 'Untitled idea'}
                   </div>
+                  {idea.outline && (
+                    <div
+                      style={{
+                        fontFamily: F.body,
+                        fontSize: '12px',
+                        color: C.text.muted,
+                        marginTop: '4px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {idea.outline.replace(/[#*`>\-_]/g, '').replace(/\s+/g, ' ').trim().slice(0, 100)}
+                    </div>
+                  )}
                 </div>
                 <span
                   style={{
@@ -129,6 +149,7 @@ export default function ContentIdeasPage() {
                     fontSize: '11px',
                     color: C.text.muted,
                     flexShrink: 0,
+                    paddingTop: '2px',
                   }}
                 >
                   {timeAgo(idea.updated_at || idea.created_at)}

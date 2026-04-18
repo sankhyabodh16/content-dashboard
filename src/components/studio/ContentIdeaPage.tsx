@@ -170,9 +170,10 @@ export default function ContentIdeaPage() {
             fontFamily: F.body,
             fontSize: '15px',
             color: C.text.primary,
-            lineHeight: 1.8,
+            lineHeight: 1.9,
             resize: 'none',
             overflow: 'hidden',
+            letterSpacing: '0.01em',
           }}
         />
 

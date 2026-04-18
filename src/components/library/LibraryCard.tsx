@@ -62,9 +62,9 @@ export default function LibraryCard({ item, onClick }: Props) {
         <div
           style={{
             fontFamily: F.body,
-            fontSize: '13px',
+            fontSize: '14px',
             color: C.text.primary,
-            lineHeight: 1.45,
+            lineHeight: 1.55,
             display: '-webkit-box',
             WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',
