@@ -22,6 +22,7 @@ export default function ContentIdeaPage() {
 
   const [title, setTitle] = useState(idea?.title ?? '')
   const [outline, setOutline] = useState(idea?.outline ?? '')
+  const titleRef = useRef<HTMLTextAreaElement>(null)
   const outlineRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -29,7 +30,15 @@ export default function ContentIdeaPage() {
     setOutline(idea?.outline ?? '')
   }, [idea?.id])
 
-  // Autosize textarea
+  // Autosize title
+  useEffect(() => {
+    const el = titleRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [title])
+
+  // Autosize outline
   useEffect(() => {
     const el = outlineRef.current
     if (!el) return
@@ -119,11 +128,13 @@ export default function ContentIdeaPage() {
       {/* Body */}
       <div className="flex-1 overflow-y-auto" style={{ padding: '48px 80px', maxWidth: '860px', width: '100%', margin: '0 auto' }}>
         {/* Title */}
-        <input
+        <textarea
+          ref={titleRef}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={saveTitle}
           placeholder="Untitled idea"
+          rows={1}
           style={{
             width: '100%',
             background: 'transparent',
@@ -134,8 +145,10 @@ export default function ContentIdeaPage() {
             fontSize: '32px',
             fontWeight: 700,
             color: C.text.primary,
-            lineHeight: 1.2,
+            lineHeight: 1.25,
             marginBottom: '32px',
+            resize: 'none',
+            overflow: 'hidden',
           }}
         />
 
